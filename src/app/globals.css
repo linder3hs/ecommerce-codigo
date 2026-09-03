@@ -1,0 +1,225 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "@clerk/ui/themes/shadcn.css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  /* @theme inline resuelve en parse time: los nombres deben ser literales, no var(). */
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-heading: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+
+  /* Storefront. Viven en el scope `.storefront` (ver más abajo): `--radius` y
+     los tokens de shadcn no se tocan porque el panel depende de ellos. */
+  --color-surface: var(--surface);
+  --color-sunk: var(--sunk);
+  --color-ink: var(--ink);
+  --color-ink-muted: var(--ink-muted);
+  --color-hairline: var(--hairline);
+  --color-brand: var(--brand);
+  --color-on-brand: var(--on-brand);
+  --radius-bento: 28px;
+  --radius-bento-sm: 26px;
+  --radius-photo: 20px;
+  --radius-thumb: 18px;
+  --shadow-soft: var(--shadow-card);
+  --shadow-float: var(--shadow-card-lg);
+}
+
+:root {
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.97 0 0);
+  --accent-foreground: oklch(0.205 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --radius: 0.625rem;
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+  --background: oklch(1 0 0);
+  --foreground: oklch(0.145 0 0);
+}
+
+.dark {
+  --background: oklch(0.145 0 0);
+  --foreground: oklch(0.985 0 0);
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.269 0 0);
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.87 0 0);
+  --chart-2: oklch(0.556 0 0);
+  --chart-3: oklch(0.439 0 0);
+  --chart-4: oklch(0.371 0 0);
+  --chart-5: oklch(0.269 0 0);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
+  --sidebar-ring: oklch(0.556 0 0);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+/*
+ * Storefront. Todo el bloque vive bajo `.storefront` a propósito: el diseño de
+ * la landing se despega de los tokens de shadcn (radios de 28 px, fondo con
+ * gradiente, sin bordes) y pisarlos en `:root` rompería el panel. El acento se
+ * llama `--brand` y no `--accent` porque shadcn ya usa `--accent` para los
+ * hovers de sus botones.
+ *
+ * La clase se aplica también al contenido de los portales de Radix (drawer,
+ * bottom sheet): salen del árbol del layout, así que necesitan los tokens.
+ */
+.storefront {
+  --page: linear-gradient(
+    155deg,
+    oklch(0.965 0.008 210) 0%,
+    oklch(0.972 0.012 150) 52%,
+    oklch(0.955 0.018 118) 100%
+  );
+  --surface: oklch(0.995 0.003 150);
+  --sunk: oklch(0.955 0.008 150);
+  --ink: oklch(0.17 0.006 150);
+  --ink-muted: oklch(0.53 0.008 150);
+  --hairline: oklch(0.895 0.006 150);
+  --overlay: oklch(0.17 0.006 150 / 40%);
+  /* Par acento / texto sobre el acento: el contraste no se calcula en CSS, así
+     que el acento viaja siempre con su color de texto. */
+  --brand: #d7f24a;
+  --on-brand: #12160a;
+  --shadow-card:
+    0 1px 2px oklch(0.17 0 0 / 3%), 0 10px 30px oklch(0.17 0 0 / 5%);
+  --shadow-card-lg:
+    0 2px 6px oklch(0.17 0 0 / 5%), 0 20px 48px oklch(0.17 0 0 / 9%);
+
+  color: var(--ink);
+}
+
+.dark .storefront {
+  --page: linear-gradient(
+    155deg,
+    oklch(0.19 0.008 210) 0%,
+    oklch(0.17 0.01 150) 52%,
+    oklch(0.155 0.014 118) 100%
+  );
+  --surface: oklch(0.225 0.006 150);
+  --sunk: oklch(0.27 0.006 150);
+  --ink: oklch(0.985 0 0);
+  --ink-muted: oklch(0.7 0.006 150);
+  --hairline: oklch(1 0 0 / 9%);
+  --overlay: oklch(0 0 0 / 60%);
+  --shadow-card: 0 1px 2px oklch(0 0 0 / 30%), 0 10px 30px oklch(0 0 0 / 34%);
+  --shadow-card-lg:
+    0 2px 6px oklch(0 0 0 / 34%), 0 20px 48px oklch(0 0 0 / 46%);
+}
+
+/* El lienzo de la página: el gradiente es un `background`, no un color, así que
+   no puede salir de una utilidad `bg-*` generada desde `@theme`. */
+.storefront-canvas {
+  background: var(--page);
+}
+
+.storefront-overlay {
+  background: var(--overlay);
+}
+
+/* Carrusel del catálogo en mobile: reemplaza a una librería de slider. */
+.snap-row {
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+}
+
+.snap-row::-webkit-scrollbar {
+  display: none;
+}
+
+.snap-item {
+  scroll-snap-align: start;
+}
