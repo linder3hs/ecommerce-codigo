@@ -19,6 +19,19 @@ export const CIRC = `inline-flex size-11 shrink-0 items-center justify-center ro
 export const CIRC_DARK =
   "bg-ink text-surface hover:bg-[color-mix(in_oklch,var(--ink),var(--ink-muted)_22%)]";
 
+// Stepper de cantidad de la tarjeta: la misma altura que `CIRC` para que la
+// fila no salte al pasar de botón a stepper, y `shrink-0` porque el bloque de
+// precio de al lado es el que trunca.
+export const STEPPER =
+  "inline-flex shrink-0 items-center gap-0.5 rounded-full bg-sunk p-[3px]";
+
+export const STEPPER_DARK = "bg-ink text-surface";
+
+// Stepper con el acento de la acción principal: se combina con `PILL` —no con
+// `PILL_BRAND`— porque el contenedor no es un botón y no debe oscurecerse
+// entero al pasar el cursor; el hover vive en los círculos de dentro.
+export const STEPPER_BRAND = "bg-brand text-on-brand";
+
 export const PILL = `inline-flex items-center gap-2.5 rounded-full font-medium transition-[background-color,transform] duration-200 active:scale-[0.985] disabled:pointer-events-none disabled:opacity-40 ${FOCUS_RING}`;
 
 export const PILL_BRAND =
@@ -26,6 +39,12 @@ export const PILL_BRAND =
 
 export const PILL_QUIET =
   "bg-sunk text-ink hover:bg-[color-mix(in_oklch,var(--sunk),var(--ink)_8%)]";
+
+// Chip de filtro. Seleccionado invierte a tinta y no al acento: el acento
+// queda reservado para la acción principal de cada vista.
+export const CHIP = `inline-flex h-[34px] items-center gap-[7px] rounded-full bg-sunk px-3.5 text-[13px] font-medium text-ink-muted transition-[background-color,color,transform] duration-200 hover:text-ink active:scale-[0.96] ${FOCUS_RING}`;
+
+export const CHIP_ON = "bg-ink text-surface hover:text-surface";
 
 export const TAG =
   "inline-flex h-[30px] items-center gap-[7px] rounded-full bg-sunk px-[13px] text-[12px] font-medium text-ink-muted";

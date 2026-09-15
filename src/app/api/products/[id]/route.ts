@@ -26,6 +26,8 @@ export async function GET(
   ctx: RouteContext<"/api/products/[id]">,
 ) {
   try {
+    await requirePermission(PERMISSIONS.PRODUCTS_READ);
+
     const id = productIdSchema.parse((await ctx.params).id);
     const product = await productRepository.findById(id);
 

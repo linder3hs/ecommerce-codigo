@@ -22,9 +22,10 @@ function useIsHydrated(): boolean {
 }
 
 /**
- * Conmutador de tema. El icono solo se dibuja después de montar: en el servidor
- * no se sabe qué resolvió `system`, y pintarlo antes es el parpadeo —y el error
- * de hidratación— clásico de next-themes.
+ * Conmutador de tema. Nada que dependa de `resolvedTheme` puede pintarse antes
+ * de montar: en el servidor `system` todavía no está resuelto, así que servidor
+ * y cliente escribirían distinto. Vale para el icono y también para el
+ * `aria-label`, que es por donde se coló el error de hidratación la primera vez.
  */
 export function ThemeToggle({ className }: { className?: string }) {
   const { resolvedTheme, setTheme } = useTheme();
@@ -36,7 +37,13 @@ export function ThemeToggle({ className }: { className?: string }) {
     <button
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
-      aria-label={isDark ? "Activar tema claro" : "Activar tema oscuro"}
+      aria-label={
+        mounted
+          ? isDark
+            ? "Activar tema claro"
+            : "Activar tema oscuro"
+          : "Cambiar tema"
+      }
       className={cn(CIRC, className)}
     >
       {mounted ? (

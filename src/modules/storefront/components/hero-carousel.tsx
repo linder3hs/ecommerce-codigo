@@ -2,6 +2,7 @@
 
 import { ArrowUpRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { AnimatePresence, motion, useReducedMotion } from "motion/react";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
@@ -10,6 +11,7 @@ import { cn } from "@/lib/utils";
 import { useCartStore } from "@/modules/cart/store/cart-store";
 import { usePublicProducts } from "@/modules/products/hooks/use-public-products";
 
+import { productHref } from "../lib/catalog";
 import {
   AUTOPLAY_MS,
   discountLabel,
@@ -22,6 +24,7 @@ import {
   CARD,
   CIRC,
   CIRC_DARK,
+  FOCUS_RING,
   MONO,
   PILL,
   PILL_BRAND,
@@ -141,12 +144,22 @@ export function HeroCarousel() {
             transition={{ duration: duration ?? 0.62, ease: EASE }}
             className="size-full"
           >
-            <ProductPhoto
-              src={slide.imageUrl}
-              alt={slide.name}
-              sizes="(min-width: 1024px) 40vw, 100vw"
-              priority
-            />
+            {/* Duplica el enlace del título: fuera del orden de tabulación y
+                oculto a lectores de pantalla para no anunciar dos veces el
+                mismo destino. */}
+            <Link
+              href={productHref(slide.slug)}
+              aria-hidden
+              tabIndex={-1}
+              className="block size-full"
+            >
+              <ProductPhoto
+                src={slide.imageUrl}
+                alt={slide.name}
+                sizes="(min-width: 1024px) 40vw, 100vw"
+                priority
+              />
+            </Link>
           </motion.div>
         </AnimatePresence>
 
@@ -154,7 +167,7 @@ export function HeroCarousel() {
           <span
             className={cn(
               MONO,
-              "bg-brand text-on-brand absolute top-3 left-3 inline-flex h-7 items-center rounded-full px-3 text-[12px] font-semibold lg:top-4 lg:right-4 lg:left-auto lg:h-[30px]",
+              "absolute top-3 left-3 inline-flex h-7 items-center rounded-full bg-brand px-3 text-[12px] font-semibold text-on-brand lg:top-4 lg:right-4 lg:left-auto lg:h-[30px]",
             )}
           >
             {off}
@@ -173,19 +186,24 @@ export function HeroCarousel() {
           >
             <span className={TAG}>{slide.category.name}</span>
             <h1 className="mt-3.5 text-[31px] leading-[1.05] font-semibold tracking-[-0.04em] text-pretty lg:mt-[22px] lg:text-[47px] lg:leading-[1.03] lg:tracking-[-0.042em]">
-              {slide.name}
+              <Link
+                href={productHref(slide.slug)}
+                className={cn("rounded-[6px]", FOCUS_RING)}
+              >
+                {slide.name}
+              </Link>
             </h1>
 
             <div className="mt-3.5 flex items-center gap-5 lg:mt-[26px]">
               <span
                 className={cn(
                   MONO,
-                  "text-hairline hidden text-[34px] font-medium tracking-[-0.03em] lg:inline",
+                  "hidden text-[34px] font-medium tracking-[-0.03em] text-hairline lg:inline",
                 )}
               >
                 {pad(active)}
               </span>
-              <span className="bg-hairline hidden h-px w-[46px] lg:block" />
+              <span className="hidden h-px w-[46px] bg-hairline lg:block" />
               <div>
                 <div className="flex items-baseline gap-2.5">
                   <span
@@ -200,14 +218,14 @@ export function HeroCarousel() {
                     <span
                       className={cn(
                         MONO,
-                        "text-ink-muted text-[12.5px] line-through lg:text-[13px]",
+                        "text-[12.5px] text-ink-muted line-through lg:text-[13px]",
                       )}
                     >
                       {formatCents(slide.compareAtPriceCents)}
                     </span>
                   )}
                 </div>
-                <p className="text-ink-muted mt-0.5 text-[12.5px]">
+                <p className="mt-0.5 text-[12.5px] text-ink-muted">
                   {productSpec(slide)}
                 </p>
               </div>
@@ -228,7 +246,7 @@ export function HeroCarousel() {
           <span className="flex-1 text-left lg:flex-none">
             {soldOut ? "Agotado" : "Agregar al carrito"}
           </span>
-          <span className="bg-on-brand text-brand flex size-9 items-center justify-center rounded-full lg:size-[38px]">
+          <span className="flex size-9 items-center justify-center rounded-full bg-on-brand text-brand lg:size-[38px]">
             <ArrowUpRight aria-hidden className="size-[17px]" />
           </span>
         </button>
@@ -245,8 +263,8 @@ export function HeroCarousel() {
                 className={cn(
                   "h-1 rounded-[4px] transition-[width,background-color] duration-300",
                   position === active
-                    ? "bg-ink w-[26px] lg:w-7"
-                    : "bg-hairline w-3 lg:w-3.5",
+                    ? "w-[26px] bg-ink lg:w-7"
+                    : "w-3 bg-hairline lg:w-3.5",
                 )}
               />
             ))}

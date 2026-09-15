@@ -1,5 +1,5 @@
 import { config } from "dotenv";
-import { isNull } from "drizzle-orm";
+import { isNull, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/postgres-js";
 import postgres from "postgres";
 
@@ -292,42 +292,88 @@ type ProductSeed = {
   isActive: boolean;
 };
 
-// Precios en centavos, siempre enteros: 549900 son S/ 5.499,00.
+// Precios en centavos de sol, siempre enteros: 699900 son S/ 6.999,00.
+// Cada `imageUrl` se verificó con curl: 200 + content-type image/jpeg.
 const PRODUCT_SEEDS: ProductSeed[] = [
+  // ── Laptops ──────────────────────────────────────────────────────────────
   {
     categorySlug: "laptops",
-    name: "Laptop Dell XPS 13 16GB",
+    name: "Laptop Dell XPS 13 9350 Core Ultra 7 16GB",
     slug: "laptop-dell-xps-13-16gb",
     sku: "LAP-XPS13-16GB",
-    description: "Ultrabook de 13 pulgadas con Core i7 y 512GB NVMe.",
-    priceCents: 549900,
-    compareAtPriceCents: 599900,
+    description:
+      "Ultrabook de 13.4 pulgadas FHD+ 120Hz con Intel Core Ultra 7 256V, 16GB LPDDR5X y 512GB NVMe.",
+    priceCents: 699900,
+    compareAtPriceCents: 749900,
     stock: 12,
-    imageUrl: "https://images.unsplash.com/photo-1496181133206-80ce9b88a853",
+    imageUrl: "https://m.media-amazon.com/images/I/81KlG8GrgkL._AC_SL1200_.jpg",
     isActive: true,
   },
   {
     categorySlug: "laptops",
-    name: "Laptop Lenovo IdeaPad Gaming 3",
+    name: "Laptop Lenovo IdeaPad Gaming 3 RTX 3050 Ti",
     slug: "laptop-lenovo-ideapad-gaming-3",
     sku: "LAP-IDEAPAD-G3",
-    description: "Ryzen 7 con RTX 3050 y pantalla de 120Hz.",
-    priceCents: 399900,
+    description:
+      "Ryzen 5 5600H con RTX 3050 Ti, 8GB DDR4, 512GB SSD y pantalla 15.6 pulgadas FHD 120Hz.",
+    priceCents: 349900,
     compareAtPriceCents: null,
     stock: 7,
-    imageUrl: "https://images.unsplash.com/photo-1517336714731-489689fd1ca8",
+    imageUrl: "https://m.media-amazon.com/images/I/71HxVwbYkHL._AC_SL1200_.jpg",
     isActive: true,
   },
+  {
+    categorySlug: "laptops",
+    name: "Laptop ASUS Zenbook 14 OLED Core Ultra 7",
+    slug: "laptop-asus-zenbook-14-oled",
+    sku: "LAP-ZENBOOK14-OLED",
+    description:
+      "Pantalla OLED táctil de 14 pulgadas, Intel Core Ultra 7 255H, 16GB LPDDR5X y 1TB SSD en 1.2 kg.",
+    priceCents: 429900,
+    compareAtPriceCents: null,
+    stock: 6,
+    imageUrl: "https://m.media-amazon.com/images/I/71mApMiwKpL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "laptops",
+    name: "Laptop HP Victus 15 RTX 4050",
+    slug: "laptop-hp-victus-15",
+    sku: "LAP-VICTUS15-RTX",
+    description:
+      "Gaming de 15.6 pulgadas IPS 144Hz con Core i5-13420H, 16GB DDR4, 512GB SSD y RTX 4050.",
+    priceCents: 389900,
+    compareAtPriceCents: 429900,
+    stock: 10,
+    imageUrl: "https://m.media-amazon.com/images/I/71lmgwUYHXL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "laptops",
+    name: "Laptop Acer Aspire 5 Core i5 13420H",
+    slug: "laptop-acer-aspire-5",
+    sku: "LAP-ASPIRE5-I5",
+    description:
+      "15.6 pulgadas Full HD táctil con Core i5-13420H, 8GB DDR5 y 512GB SSD para estudio y oficina.",
+    priceCents: 249900,
+    compareAtPriceCents: null,
+    stock: 18,
+    imageUrl: "https://m.media-amazon.com/images/I/61kojoLeN5L._AC_SL1200_.jpg",
+    isActive: true,
+  },
+
+  // ── Teclados ─────────────────────────────────────────────────────────────
   {
     categorySlug: "teclados",
     name: "Teclado mecánico Keychron K2",
     slug: "teclado-mecanico-keychron-k2",
     sku: "TEC-K2-BROWN",
-    description: "75% inalámbrico, switches marrones y retroiluminación RGB.",
+    description:
+      "Layout 75% de 84 teclas, Bluetooth y USB-C, hot-swappable y retroiluminación RGB.",
     priceCents: 42900,
     compareAtPriceCents: 49900,
     stock: 30,
-    imageUrl: "https://images.unsplash.com/photo-1587829741301-dc798b83add3",
+    imageUrl: "https://m.media-amazon.com/images/I/61dXb5X1mYL._AC_SL1200_.jpg",
     isActive: true,
   },
   {
@@ -335,60 +381,320 @@ const PRODUCT_SEEDS: ProductSeed[] = [
     name: "Teclado Logitech MX Keys",
     slug: "teclado-logitech-mx-keys",
     sku: "TEC-MXKEYS",
-    description: "Teclado bajo perfil para productividad, multi dispositivo.",
-    priceCents: 39900,
+    description:
+      "Bajo perfil con teclas cóncavas, retroiluminación automática y hasta tres equipos emparejados.",
+    priceCents: 54900,
     compareAtPriceCents: null,
     stock: 0,
-    imageUrl: "https://images.unsplash.com/photo-1618384887929-16ec33fab9ef",
+    imageUrl: "https://m.media-amazon.com/images/I/71gOLg2-kqL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "teclados",
+    name: "Teclado Razer BlackWidow V4 X",
+    slug: "teclado-razer-blackwidow-v4-x",
+    sku: "TEC-BW-V4X",
+    description:
+      "Mecánico full size con switches Green táctiles, 6 teclas macro y Chroma RGB.",
+    priceCents: 64900,
+    compareAtPriceCents: 74900,
+    stock: 14,
+    imageUrl: "https://m.media-amazon.com/images/I/71qoXjgRb-L._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "teclados",
+    name: "Teclado mecánico Redragon K552P Kumara",
+    slug: "teclado-redragon-k552p-kumara",
+    sku: "TEC-K552P",
+    description:
+      "TKL de 87 teclas con switches rojos hot-swappable, 18 modos de iluminación y anti-ghosting.",
+    priceCents: 19900,
+    compareAtPriceCents: 24900,
+    stock: 40,
+    imageUrl: "https://m.media-amazon.com/images/I/71lQnVCMmXL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "teclados",
+    name: "Teclado HyperX Alloy Origins Core",
+    slug: "teclado-hyperx-alloy-origins-core",
+    sku: "TEC-ALLOY-CORE",
+    description:
+      "Tenkeyless de cuerpo de aluminio con switches HyperX Red y cable USB-C desmontable.",
+    priceCents: 37900,
+    compareAtPriceCents: null,
+    stock: 11,
+    imageUrl: "https://m.media-amazon.com/images/I/713HboKyvoL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+
+  // ── Monitores ────────────────────────────────────────────────────────────
+  {
+    categorySlug: "monitores",
+    name: 'Monitor LG UltraGear 27GP850-B 27"',
+    slug: "monitor-lg-ultragear-27",
+    sku: "MON-LG-UG27",
+    description:
+      "Nano IPS QHD 2560x1440 a 165Hz con 1ms, G-Sync Compatible y FreeSync Premium.",
+    priceCents: 149900,
+    compareAtPriceCents: 169900,
+    stock: 9,
+    imageUrl: "https://m.media-amazon.com/images/I/71PVdlAD4lL._AC_SL1200_.jpg",
     isActive: true,
   },
   {
     categorySlug: "monitores",
-    name: 'Monitor LG UltraGear 27"',
-    slug: "monitor-lg-ultragear-27",
-    sku: "MON-LG-UG27",
-    description: "QHD 165Hz con 1ms de respuesta para gaming.",
-    priceCents: 129900,
-    compareAtPriceCents: 149900,
-    stock: 9,
-    imageUrl: "https://images.unsplash.com/photo-1527443224154-c4a3942d3acf",
+    name: 'Monitor Samsung Odyssey G5 27" QHD',
+    slug: "monitor-samsung-odyssey-g5-27",
+    sku: "MON-SAM-G5-27",
+    description:
+      "QHD 2560x1440 a 180Hz con 1ms, HDR10 y soporte con ajuste de altura.",
+    priceCents: 109900,
+    compareAtPriceCents: null,
+    stock: 13,
+    imageUrl: "https://m.media-amazon.com/images/I/71HCnFPkVhL._AC_SL1200_.jpg",
     isActive: true,
   },
+  {
+    categorySlug: "monitores",
+    name: 'Monitor Dell UltraSharp U2422H 24"',
+    slug: "monitor-dell-ultrasharp-u2422h",
+    sku: "MON-DELL-U2422H",
+    description:
+      "IPS Full HD de 23.8 pulgadas con cobertura sRGB 99%, hub USB y soporte ergonómico.",
+    priceCents: 129900,
+    compareAtPriceCents: 144900,
+    stock: 8,
+    imageUrl: "https://m.media-amazon.com/images/I/812VswIbb4L._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "monitores",
+    name: 'Monitor ASUS TUF Gaming VG249Q1A 24"',
+    slug: "monitor-asus-tuf-vg249q1a",
+    sku: "MON-ASUS-VG249Q1A",
+    description:
+      "IPS Full HD de 23.8 pulgadas a 165Hz con 1ms MPRT, ELMB y FreeSync Premium.",
+    priceCents: 69900,
+    compareAtPriceCents: null,
+    stock: 16,
+    imageUrl: "https://m.media-amazon.com/images/I/61wOrOwqEiL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "monitores",
+    name: 'Monitor AOC 24B2XH 24"',
+    slug: "monitor-aoc-24b2xh",
+    sku: "MON-AOC-24B2XH",
+    description:
+      "IPS Full HD de 23.8 pulgadas sin marcos, 75Hz, entradas HDMI y VGA, compatible VESA.",
+    priceCents: 44900,
+    compareAtPriceCents: 51900,
+    stock: 22,
+    imageUrl: "https://m.media-amazon.com/images/I/61vEoTP35IL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+
+  // ── Audio ────────────────────────────────────────────────────────────────
   {
     categorySlug: "audio",
     name: "Audífonos Sony WH-1000XM5",
     slug: "audifonos-sony-wh-1000xm5",
     sku: "AUD-WH1000XM5",
-    description: "Cancelación de ruido líder y 30 horas de batería.",
-    priceCents: 179900,
-    compareAtPriceCents: null,
+    description:
+      "Cancelación de ruido adaptativa con 8 micrófonos, 30 horas de batería y carga rápida USB-C.",
+    priceCents: 159900,
+    compareAtPriceCents: 179900,
     stock: 15,
-    imageUrl: "https://images.unsplash.com/photo-1505740420928-5e560c06d30e",
+    imageUrl: "https://m.media-amazon.com/images/I/61O3iMlnJIL._AC_SL1200_.jpg",
     isActive: true,
   },
   {
+    categorySlug: "audio",
+    name: "Audífonos JBL Tune 510BT",
+    slug: "audifonos-jbl-tune-510bt",
+    sku: "AUD-JBL-510BT",
+    description:
+      "On-ear Bluetooth 5.0 con JBL Pure Bass, 40 horas de batería y diseño plegable.",
+    priceCents: 16900,
+    compareAtPriceCents: null,
+    stock: 35,
+    imageUrl: "https://m.media-amazon.com/images/I/61q2zYSX7DL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "audio",
+    name: "Headset Logitech G Pro X",
+    slug: "headset-logitech-g-pro-x",
+    sku: "AUD-GPROX",
+    description:
+      "Drivers de 50mm, sonido envolvente DTS 7.1 y micrófono desmontable con Blue VO!CE.",
+    priceCents: 44900,
+    compareAtPriceCents: 52900,
+    stock: 12,
+    imageUrl: "https://m.media-amazon.com/images/I/51j6CXF9DYL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "audio",
+    name: "Headset HyperX Cloud II",
+    slug: "headset-hyperx-cloud-ii",
+    sku: "AUD-CLOUD2",
+    description:
+      "Sonido envolvente 7.1 virtual, almohadillas de memory foam y marco de aluminio.",
+    priceCents: 37900,
+    compareAtPriceCents: null,
+    stock: 20,
+    imageUrl: "https://m.media-amazon.com/images/I/71ltsViEA8L._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "audio",
+    name: "Micrófono FIFINE K669B USB",
+    slug: "microfono-fifine-k669b",
+    sku: "AUD-FIFINE-K669B",
+    description:
+      "Condensador cardioide USB con cuerpo metálico y control de volumen, plug and play.",
+    priceCents: 14900,
+    compareAtPriceCents: null,
+    stock: 26,
+    imageUrl: "https://m.media-amazon.com/images/I/51frr1QHyZL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+
+  // ── Almacenamiento ───────────────────────────────────────────────────────
+  {
     categorySlug: "almacenamiento",
-    name: "SSD Samsung 980 Pro 1TB",
+    name: "SSD Samsung 980 Pro 1TB NVMe",
     slug: "ssd-samsung-980-pro-1tb",
     sku: "ALM-980PRO-1TB",
-    description: "NVMe PCIe 4.0 con hasta 7000 MB/s de lectura.",
-    priceCents: 49900,
-    compareAtPriceCents: 59900,
+    description:
+      "M.2 2280 PCIe 4.0 con hasta 7000 MB/s de lectura y control térmico integrado.",
+    priceCents: 44900,
+    compareAtPriceCents: 52900,
     stock: 25,
-    imageUrl: "https://images.unsplash.com/photo-1531492746076-161ca9bcad58",
+    imageUrl: "https://m.media-amazon.com/images/I/61sveEgbI2L._AC_SL1200_.jpg",
     isActive: true,
   },
   {
     categorySlug: "almacenamiento",
-    name: "Disco externo Seagate 2TB",
+    name: "SSD WD_BLACK SN770 1TB NVMe",
+    slug: "ssd-wd-black-sn770-1tb",
+    sku: "ALM-SN770-1TB",
+    description:
+      "M.2 2280 PCIe Gen4 sin DRAM con hasta 5150 MB/s, pensado para gaming.",
+    priceCents: 32900,
+    compareAtPriceCents: null,
+    stock: 19,
+    imageUrl: "https://m.media-amazon.com/images/I/71Sr1zjPhwL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "almacenamiento",
+    name: "SSD Kingston NV3 1TB NVMe",
+    slug: "ssd-kingston-nv3-1tb",
+    sku: "ALM-NV3-1TB",
+    description:
+      "M.2 2280 PCIe 4.0 x4 con hasta 6000 MB/s, opción de entrada para actualizar laptops.",
+    priceCents: 24900,
+    compareAtPriceCents: 29900,
+    stock: 32,
+    imageUrl: "https://m.media-amazon.com/images/I/71c5uuoM1bL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "almacenamiento",
+    name: "SSD Crucial P310 1TB NVMe",
+    slug: "ssd-crucial-p310-1tb",
+    sku: "ALM-P310-1TB",
+    description:
+      "M.2 2280 PCIe Gen4 con hasta 7100 MB/s, compatible con laptops, PC y consolas portátiles.",
+    priceCents: 28900,
+    compareAtPriceCents: null,
+    stock: 21,
+    imageUrl: "https://m.media-amazon.com/images/I/51iNNIdPqkL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "almacenamiento",
+    name: "Disco externo Seagate One Touch 2TB",
     slug: "disco-externo-seagate-2tb",
     sku: "ALM-SEAGATE-2TB",
-    description: "Producto despublicado, útil para probar el filtro de estado.",
+    description:
+      "HDD portátil USB 3.0 de 2TB para respaldo en PC y Mac, sin fuente de poder externa.",
     priceCents: 29900,
     compareAtPriceCents: null,
     stock: 4,
-    imageUrl: "https://images.unsplash.com/photo-1597872200969-2b65d56bd16b",
+    imageUrl: "https://m.media-amazon.com/images/I/817o7I64M0L._AC_SL1200_.jpg",
+    isActive: true,
+  },
+
+  // ── Accesorios descontinuados (categoría inactiva) ───────────────────────
+  {
+    categorySlug: "accesorios-descontinuados",
+    name: "Mouse inalámbrico Logitech M170",
+    slug: "mouse-logitech-m170",
+    sku: "ACC-M170",
+    description:
+      "Ambidiestro de 2.4 GHz con receptor nano USB-A y hasta 12 meses de batería.",
+    priceCents: 4900,
+    compareAtPriceCents: null,
+    stock: 45,
+    imageUrl: "https://m.media-amazon.com/images/I/51tTYBtpzjL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "accesorios-descontinuados",
+    name: "Webcam Logitech C270 HD",
+    slug: "webcam-logitech-c270",
+    sku: "ACC-C270",
+    description:
+      "720p a 30 fps con micrófono con reducción de ruido y corrección automática de luz.",
+    priceCents: 12900,
+    compareAtPriceCents: 14900,
+    stock: 17,
+    imageUrl: "https://m.media-amazon.com/images/I/61yo4swj-PL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "accesorios-descontinuados",
+    name: "Hub USB Anker de 4 puertos",
+    slug: "hub-usb-anker-4-puertos",
+    sku: "ACC-ANKER-HUB4",
+    description:
+      "Divisor USB-A 4 en 1 con transferencia de 5 Gbps y cable de 60 cm, sin drivers.",
+    priceCents: 7900,
+    compareAtPriceCents: null,
+    stock: 28,
+    imageUrl: "https://m.media-amazon.com/images/I/61cJHLsLNuL._AC_SL1200_.jpg",
+    isActive: true,
+  },
+  {
+    categorySlug: "accesorios-descontinuados",
+    name: "Combo teclado y mouse Logitech MK120",
+    slug: "combo-logitech-mk120",
+    sku: "ACC-MK120",
+    description:
+      "Combo alámbrico USB despublicado, útil para probar el filtro de estado y el agotado.",
+    priceCents: 7900,
+    compareAtPriceCents: null,
+    stock: 0,
+    imageUrl: "https://m.media-amazon.com/images/I/717IbQpOStL._AC_SL1200_.jpg",
     isActive: false,
+  },
+  {
+    categorySlug: "accesorios-descontinuados",
+    name: "Mousepad de vidrio Redragon PG1M",
+    slug: "mousepad-redragon-pg1m",
+    sku: "ACC-PG1M",
+    description:
+      "Superficie de vidrio templado ultra lisa con base antideslizante, fácil de limpiar.",
+    priceCents: 9900,
+    compareAtPriceCents: 12900,
+    stock: 24,
+    imageUrl: "https://m.media-amazon.com/images/I/61RGGFnjAGL._AC_SL1200_.jpg",
+    isActive: true,
   },
 ];
 
@@ -544,17 +850,33 @@ async function seedCatalog(db: SeedDb) {
     };
   });
 
-  const insertedProducts = await db
+  // A diferencia de las categorías, aquí el seed sí pisa: el catálogo de demo
+  // es dato de referencia y reejecutar tiene que corregir precio, stock y foto.
+  // `targetWhere` repite el predicado del índice parcial; sin él Postgres no
+  // infiere `products_slug_active_unq` y el ON CONFLICT falla.
+  const seededProducts = await db
     .insert(products)
     .values(productValues)
-    .onConflictDoNothing({
+    .onConflictDoUpdate({
       target: products.slug,
-      where: isNull(products.deletedAt),
+      targetWhere: isNull(products.deletedAt),
+      set: {
+        name: sql`excluded.name`,
+        sku: sql`excluded.sku`,
+        description: sql`excluded.description`,
+        priceCents: sql`excluded.price_cents`,
+        compareAtPriceCents: sql`excluded.compare_at_price_cents`,
+        stock: sql`excluded.stock`,
+        categoryId: sql`excluded.category_id`,
+        imageUrl: sql`excluded.image_url`,
+        isActive: sql`excluded.is_active`,
+        updatedAt: new Date(),
+      },
     })
     .returning({ slug: products.slug });
 
   console.log(
-    `Seed de productos: ${insertedProducts.length} nuevos de ${PRODUCT_SEEDS.length}.`,
+    `Seed de productos: ${seededProducts.length} filas sembradas o actualizadas de ${PRODUCT_SEEDS.length}.`,
   );
 }
 

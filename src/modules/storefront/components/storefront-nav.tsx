@@ -1,5 +1,6 @@
 "use client";
 
+import { Show, UserButton } from "@clerk/nextjs";
 import { Heart, House, Search, ShoppingBag, UserRound } from "lucide-react";
 import { useAnimate } from "motion/react";
 import Link from "next/link";
@@ -8,6 +9,7 @@ import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { selectCount, useCartStore } from "@/modules/cart/store/cart-store";
 
+import { PROFILE_ACCOUNT_PATH, PROFILE_PATH } from "../lib/profile";
 import {
   CARD,
   CIRC,
@@ -158,6 +160,32 @@ function MobileBar({ onSearch }: { onSearch: () => void }) {
           </span>
         ) : null}
       </button>
+      <Show when="signed-out">
+        <Link
+          href="/sign-in"
+          aria-label="Ingresar"
+          className={cn(PILL, "h-12 w-12 justify-center px-0")}
+        >
+          <UserRound aria-hidden className="size-[19px]" />
+        </Link>
+      </Show>
+      <Show when="signed-in">
+        <UserButton
+          userProfileMode="navigation"
+          userProfileUrl={PROFILE_ACCOUNT_PATH}
+          appearance={{ elements: { userButtonAvatarBox: "size-9" } }}
+        >
+          {/* Clerk identifica estos hijos por su tipo: envolverlos en un
+              componente propio los haría invisibles para el menú. */}
+          <UserButton.MenuItems>
+            <UserButton.Link
+              label="Mi perfil"
+              labelIcon={<UserRound className="size-4" />}
+              href={PROFILE_PATH}
+            />
+          </UserButton.MenuItems>
+        </UserButton>
+      </Show>
     </nav>
   );
 }
@@ -204,19 +232,36 @@ export function StorefrontNav() {
             <Heart aria-hidden className="size-[19px]" />
           </button>
           <ThemeToggle />
-          <Link
-            href="/sign-in"
-            className={cn(
-              PILL,
-              PILL_QUIET,
-              "h-11 pr-2 pl-4 text-[14px] gap-2.5",
-            )}
-          >
-            Ingresar
-            <span className="bg-surface text-ink flex size-7 items-center justify-center rounded-full">
-              <UserRound aria-hidden className="size-[15px]" />
-            </span>
-          </Link>
+          <Show when="signed-out">
+            <Link
+              href="/sign-in"
+              className={cn(
+                PILL,
+                PILL_QUIET,
+                "h-11 pr-2 pl-4 text-[14px] gap-2.5",
+              )}
+            >
+              Ingresar
+              <span className="bg-surface text-ink flex size-7 items-center justify-center rounded-full">
+                <UserRound aria-hidden className="size-[15px]" />
+              </span>
+            </Link>
+          </Show>
+          <Show when="signed-in">
+            <UserButton
+              userProfileMode="navigation"
+              userProfileUrl={PROFILE_ACCOUNT_PATH}
+              appearance={{ elements: { userButtonAvatarBox: "size-9" } }}
+            >
+              <UserButton.MenuItems>
+                <UserButton.Link
+                  label="Mi perfil"
+                  labelIcon={<UserRound className="size-4" />}
+                  href={PROFILE_PATH}
+                />
+              </UserButton.MenuItems>
+            </UserButton>
+          </Show>
         </div>
       </header>
 

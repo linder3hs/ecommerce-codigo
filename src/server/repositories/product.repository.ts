@@ -7,11 +7,15 @@ import {
   desc,
   eq,
   gt,
+  gte,
   ilike,
+  inArray,
   isNotNull,
   isNull,
+  lte,
   ne,
   or,
+  sql,
   type SQL,
 } from "drizzle-orm";
 import type { PgColumn } from "drizzle-orm/pg-core";
@@ -75,13 +79,20 @@ export type PublicProductRow = Pick<
   category: ProductCategoryRow;
 };
 
-export type PublicProductSortField = "name" | "priceCents" | "createdAt";
+// Se separan los campos que son columna de los que no: `discount` es una
+// expresión calculada y no cabe en `PUBLIC_SORT_COLUMNS`.
+export type PublicProductSortColumn = "name" | "priceCents" | "createdAt";
+
+export type PublicProductSortField = PublicProductSortColumn | "discount";
 
 export type ListPublicProductsParams = {
   page: number;
   pageSize: number;
   search?: string;
   categorySlug?: string;
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  inStock?: boolean;
   onlyOffers?: boolean;
   sortBy: PublicProductSortField;
   sortDir: "asc" | "desc";
@@ -117,11 +128,32 @@ const SORT_COLUMNS: Record<ProductSortField, PgColumn> = {
   updatedAt: products.updatedAt,
 };
 
-const PUBLIC_SORT_COLUMNS: Record<PublicProductSortField, PgColumn> = {
+const PUBLIC_SORT_COLUMNS: Record<PublicProductSortColumn, PgColumn> = {
   name: products.name,
   priceCents: products.priceCents,
   createdAt: products.createdAt,
 };
+
+// Fracción de descuento. El casteo a `numeric` es obligatorio: dos integers se
+// dividen como integers en Postgres y todo daría 0. `NULLIF` protege de una
+// división por cero y deja en NULL a los productos sin precio de comparación,
+// que con `NULLS LAST` caen al final en ambas direcciones.
+const DISCOUNT_EXPRESSION = sql`1 - ${products.priceCents}::numeric / NULLIF(${products.compareAtPriceCents}, 0)`;
+
+function publicOrderBy(params: {
+  sortBy: PublicProductSortField;
+  sortDir: "asc" | "desc";
+}): SQL {
+  if (params.sortBy === "discount") {
+    return params.sortDir === "asc"
+      ? sql`${DISCOUNT_EXPRESSION} asc nulls last`
+      : sql`${DISCOUNT_EXPRESSION} desc nulls last`;
+  }
+
+  const column = PUBLIC_SORT_COLUMNS[params.sortBy];
+
+  return params.sortDir === "asc" ? asc(column) : desc(column);
+}
 
 export const SLUG_TAKEN_MESSAGE = "Ya existe un producto con ese slug.";
 export const SKU_TAKEN_MESSAGE = "Ya existe un producto con ese SKU.";
@@ -183,6 +215,9 @@ async function mapUniqueConflict<T>(operation: () => Promise<T>): Promise<T> {
 function buildPublicFilters(params: {
   search?: string;
   categorySlug?: string;
+  minPriceCents?: number;
+  maxPriceCents?: number;
+  inStock?: boolean;
   onlyOffers?: boolean;
 }): SQL | undefined {
   const conditions: SQL[] = [
@@ -207,6 +242,20 @@ function buildPublicFilters(params: {
 
   if (params.categorySlug) {
     conditions.push(eq(categories.slug, params.categorySlug));
+  }
+
+  // Comparaciones contra `undefined` y no contra un valor falsy: un mínimo de
+  // 0 centavos es un filtro válido y `if (params.minPriceCents)` lo perdería.
+  if (params.minPriceCents !== undefined) {
+    conditions.push(gte(products.priceCents, params.minPriceCents));
+  }
+
+  if (params.maxPriceCents !== undefined) {
+    conditions.push(lte(products.priceCents, params.maxPriceCents));
+  }
+
+  if (params.inStock) {
+    conditions.push(gt(products.stock, 0));
   }
 
   // Oferta = hay precio de comparación y es mayor que el vigente. Comparar en
@@ -257,7 +306,7 @@ export const productRepository = {
   ): Promise<ListPublicProductsResult> {
     const db = getDb();
     const where = buildPublicFilters(params);
-    const direction = params.sortDir === "asc" ? asc : desc;
+    const orderBy = publicOrderBy(params);
 
     // Mismo `innerJoin` que `list()`: una consulta resuelve la categoría de
     // todas las filas en vez de una por producto (N+1).
@@ -281,7 +330,7 @@ export const productRepository = {
         .from(products)
         .innerJoin(categories, eq(products.categoryId, categories.id))
         .where(where)
-        .orderBy(direction(PUBLIC_SORT_COLUMNS[params.sortBy]))
+        .orderBy(orderBy)
         .limit(params.pageSize)
         .offset((params.page - 1) * params.pageSize),
       db
@@ -292,6 +341,71 @@ export const productRepository = {
     ]);
 
     return { rows, total: totalRows[0]?.value ?? 0 };
+  },
+
+  async findPublicBySlug(slug: string): Promise<PublicProductRow | null> {
+    const db = getDb();
+
+    // Misma proyección y mismo `buildPublicFilters` que `listPublic`: la ficha
+    // no puede ser una segunda definición de "producto público" o quedaría
+    // accesible por URL después de despublicar su categoría.
+    const [row] = await db
+      .select({
+        id: products.id,
+        name: products.name,
+        slug: products.slug,
+        description: products.description,
+        priceCents: products.priceCents,
+        compareAtPriceCents: products.compareAtPriceCents,
+        stock: products.stock,
+        imageUrl: products.imageUrl,
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        },
+      })
+      .from(products)
+      .innerJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(buildPublicFilters({}), eq(products.slug, slug)))
+      .limit(1);
+
+    return row ?? null;
+  },
+
+  /**
+   * Resuelve varias líneas de carrito en una sola consulta, con el mismo
+   * criterio de "producto público" que el catálogo: un producto despublicado
+   * —o cuya categoría lo esté— no aparece y el checkout lo trata como
+   * inexistente. Devuelve solo las filas encontradas: quien llama compara
+   * contra los ids pedidos para saber cuáles faltan.
+   */
+  async findManyActiveByIds(ids: string[]): Promise<PublicProductRow[]> {
+    if (ids.length === 0) {
+      return [];
+    }
+
+    const db = getDb();
+
+    return db
+      .select({
+        id: products.id,
+        name: products.name,
+        slug: products.slug,
+        description: products.description,
+        priceCents: products.priceCents,
+        compareAtPriceCents: products.compareAtPriceCents,
+        stock: products.stock,
+        imageUrl: products.imageUrl,
+        category: {
+          id: categories.id,
+          name: categories.name,
+          slug: categories.slug,
+        },
+      })
+      .from(products)
+      .innerJoin(categories, eq(products.categoryId, categories.id))
+      .where(and(buildPublicFilters({}), inArray(products.id, ids)));
   },
 
   async findById(id: string): Promise<ProductRow | null> {

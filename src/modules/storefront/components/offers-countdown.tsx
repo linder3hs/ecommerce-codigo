@@ -1,6 +1,7 @@
 "use client";
 
 import { Clock } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 import { cn } from "@/lib/utils";
@@ -11,12 +12,13 @@ import {
   OFFERS_WINDOW_SECONDS,
   secondsUntil,
 } from "../lib/landing";
-import { MONO } from "../lib/styles";
+import { FOCUS_RING, LIFT, MONO } from "../lib/styles";
 
 /**
- * Contador de la tarjeta de ofertas. El deadline se fija en un efecto tras
- * montar y el primer paint muestra `--:--:--`: calcularlo en render daría un
- * valor distinto en servidor y en cliente, que es un error de hidratación.
+ * Contador de la tarjeta de ofertas, que además es el acceso al catálogo ya
+ * filtrado por ofertas. El deadline se fija en un efecto tras montar y el
+ * primer paint muestra `--:--:--`: calcularlo en render daría un valor
+ * distinto en servidor y en cliente, que es un error de hidratación.
  */
 export function OffersCountdown({ offerCount }: { offerCount: number }) {
   const [seconds, setSeconds] = useState<number | null>(null);
@@ -40,7 +42,14 @@ export function OffersCountdown({ offerCount }: { offerCount: number }) {
   const countLabel = `${offerCount} ${offerCount === 1 ? "producto" : "productos"} con descuento`;
 
   return (
-    <section className="bg-brand text-on-brand shadow-soft flex items-center justify-between gap-4 rounded-bento-sm px-[22px] py-[18px] lg:col-span-3 lg:flex-col lg:items-stretch lg:rounded-bento lg:p-[22px]">
+    <Link
+      href="/products?deals=1"
+      className={cn(
+        LIFT,
+        FOCUS_RING,
+        "bg-brand text-on-brand shadow-soft flex items-center justify-between gap-4 rounded-bento-sm px-[22px] py-[18px] lg:col-span-3 lg:flex-col lg:items-stretch lg:rounded-bento lg:p-[22px]",
+      )}
+    >
       <div className="lg:flex lg:items-center lg:justify-between">
         <span className="block text-[13.5px] font-semibold lg:text-[14px]">
           Ofertas
@@ -66,6 +75,6 @@ export function OffersCountdown({ offerCount }: { offerCount: number }) {
       </div>
 
       <p className="hidden text-[12.5px] opacity-72 lg:block">{countLabel}</p>
-    </section>
+    </Link>
   );
 }

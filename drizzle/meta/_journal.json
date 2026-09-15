@@ -22,6 +22,20 @@
       "when": 1788226973749,
       "tag": "0002_numerous_stranger",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1788835659245,
+      "tag": "0003_same_shotgun",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1789008126438,
+      "tag": "0004_plain_liz_osborn",
+      "breakpoints": true
     }
   ]
 }

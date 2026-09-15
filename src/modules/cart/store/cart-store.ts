@@ -21,7 +21,10 @@ export type CartLine = {
   qty: number;
 };
 
-const MAX_QTY = 99;
+// Se exporta porque los controles de cantidad —tarjeta y ficha— apagan el "+"
+// al llegar al tope: si cada uno guardara su propio 99, el día que cambie el
+// límite el botón seguiría activo contra un valor que ya no sube.
+export const CART_MAX_QTY = 99;
 
 type CartState = {
   items: CartLine[];
@@ -36,7 +39,7 @@ type CartState = {
 };
 
 function clampQty(qty: number): number {
-  return Math.min(MAX_QTY, Math.trunc(qty));
+  return Math.min(CART_MAX_QTY, Math.trunc(qty));
 }
 
 export const useCartStore = create<CartState>((set) => ({

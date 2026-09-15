@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { IMAGE_URL_HOST_MESSAGE, isAllowedImageUrl } from "@/lib/image-hosts";
+
 export const categoryQuerySchema = z.object({
   page: z.coerce
     .number("La página debe ser un número.")
@@ -56,6 +58,7 @@ export const createCategorySchema = z.object({
   imageUrl: z
     .url("La URL de imagen no es válida.")
     .max(2048, "La URL admite máximo 2048 caracteres.")
+    .refine(isAllowedImageUrl, IMAGE_URL_HOST_MESSAGE)
     .nullish(),
   isActive: z.boolean("El estado debe ser verdadero o falso.").default(true),
 });

@@ -12,14 +12,9 @@ import {
 import { useMediaQuery } from "@/hooks/use-media-query";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { CheckoutButton } from "@/modules/checkout/components/checkout-button";
 import { ProductPhoto } from "@/modules/storefront/components/product-photo";
-import {
-  CIRC,
-  MONO,
-  PILL,
-  PILL_BRAND,
-  PILL_QUIET,
-} from "@/modules/storefront/lib/styles";
+import { CIRC, MONO, PILL, PILL_QUIET } from "@/modules/storefront/lib/styles";
 
 import {
   lineTotalCents,
@@ -170,22 +165,7 @@ export function CartDrawer() {
                   {formatCents(subtotalCents)}
                 </span>
               </div>
-              {/* El checkout llega en su propio spec: el botón queda a la vista
-                  pero deshabilitado en vez de simular un flujo que no existe. */}
-              <button
-                type="button"
-                disabled
-                className={cn(
-                  PILL,
-                  PILL_BRAND,
-                  "mt-3.5 h-[54px] w-full justify-center text-[15px] lg:mt-4 lg:h-[52px]",
-                )}
-              >
-                Ir a pagar
-              </button>
-              <p className="text-ink-muted mt-2 text-center text-[11.5px]">
-                El pago se habilita en la próxima entrega.
-              </p>
+              <CheckoutButton className="mt-3.5 lg:mt-4" />
             </div>
           </>
         )}

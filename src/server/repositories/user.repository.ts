@@ -1,6 +1,6 @@
 import "server-only";
 
-import { and, count, desc, eq, ilike, or, type SQL } from "drizzle-orm";
+import { and, count, desc, eq, ilike, isNull, or, type SQL } from "drizzle-orm";
 
 import { getDb, type Db, type Tx } from "@/server/db";
 import { roles } from "@/server/db/schema/role";
@@ -211,6 +211,42 @@ export const userRepository = {
       active: rows.find((row) => row.isActive)?.total ?? 0,
       inactive: rows.find((row) => !row.isActive)?.total ?? 0,
     };
+  },
+
+  /**
+   * Customer de Stripe del usuario. Se lee suelto y no con `findByClerkId`
+   * porque quien lo necesita ya tiene la fila y solo le falta esta columna.
+   */
+  async findStripeCustomerId(
+    userId: string,
+    db: Db | Tx = getDb(),
+  ): Promise<string | null> {
+    const [row] = await db
+      .select({ stripeCustomerId: users.stripeCustomerId })
+      .from(users)
+      .where(eq(users.id, userId))
+      .limit(1);
+
+    return row?.stripeCustomerId ?? null;
+  },
+
+  /**
+   * Guarda el Customer recién creado. La guarda `stripe_customer_id IS NULL`
+   * hace que dos altas simultáneas no se pisen: la segunda no actualiza nada y
+   * devuelve `null`, señal de que hay que quedarse con el Customer ya guardado.
+   */
+  async setStripeCustomerId(
+    userId: string,
+    stripeCustomerId: string,
+    db: Db | Tx = getDb(),
+  ): Promise<string | null> {
+    const [row] = await db
+      .update(users)
+      .set({ stripeCustomerId })
+      .where(and(eq(users.id, userId), isNull(users.stripeCustomerId)))
+      .returning({ stripeCustomerId: users.stripeCustomerId });
+
+    return row?.stripeCustomerId ?? null;
   },
 
   async setActive(

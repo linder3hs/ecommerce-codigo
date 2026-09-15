@@ -40,6 +40,16 @@ export class ForbiddenError extends Error {
   }
 }
 
+// La petición es válida pero choca con el estado actual del recurso: stock
+// insuficiente, producto despublicado o espejo de usuario todavía sin
+// sincronizar. Es 409 y no 400: reintentar el mismo body puede funcionar.
+export class ConflictError extends Error {
+  constructor(message = "La operación no se puede completar ahora mismo.") {
+    super(message);
+    this.name = "ConflictError";
+  }
+}
+
 export function jsonError(
   status: number,
   message: string,
@@ -79,7 +89,11 @@ export function isUniqueViolation(error: unknown): boolean {
 
 export function handleApiError(error: unknown): Response {
   if (error instanceof ZodError) {
-    return jsonError(400, "Los datos enviados no son válidos.", toIssues(error));
+    return jsonError(
+      400,
+      "Los datos enviados no son válidos.",
+      toIssues(error),
+    );
   }
 
   if (error instanceof UnauthorizedError) {
@@ -94,7 +108,7 @@ export function handleApiError(error: unknown): Response {
     return jsonError(404, error.message);
   }
 
-  if (error instanceof SlugConflictError) {
+  if (error instanceof SlugConflictError || error instanceof ConflictError) {
     return jsonError(409, error.message);
   }
 

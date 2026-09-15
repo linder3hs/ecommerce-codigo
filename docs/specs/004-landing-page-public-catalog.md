@@ -1,7 +1,7 @@
 ---
 id: 004
 title: Landing page pública y API de catálogo
-status: in-review
+status: done
 module: shared
 scope: client
 ---
@@ -20,16 +20,16 @@ No incluye: `Catalogo.dc.html`, `/products/[slug]`, carrito en BD, checkout,
 órdenes, auth del storefront, favoritos (el corazón queda decorativo).
 
 ## Criterios de aceptación
-- [ ] AC1 — Dado un visitante sin sesión, cuando abre `/`, entonces ve nav, hero, categorías, spotlight, thumbs, ofertas y destacado ancho con datos de la BD.
-- [ ] AC2 — Dado `GET /api/storefront/products`, cuando responde 200, entonces ninguna fila trae `sku`, `isActive`, `deletedAt`, `createdAt`, `updatedAt` ni `categoryId`, y ninguna es inactiva o borrada.
-- [ ] AC3 — Dado `GET /api/products` sin sesión, entonces responde 401 (la lectura admin deja de ser pública).
-- [ ] AC4 — Dado el hero, cuando pasan 5,6 s o se pulsa una flecha/punto, entonces cambia de oferta con la transición de la nota MOTION y el autoplay se reinicia tras la acción manual.
-- [ ] AC5 — Dado el buscador, cuando el visitante escribe, entonces tras 300 ms aparece el panel con máximo 4 resultados del servidor, o "Nada para X".
-- [ ] AC6 — Dado un producto agregado, entonces el badge del carrito hace `bump`, el drawer lista las líneas y el total se calcula sumando centavos enteros.
-- [ ] AC7 — Dado stock 0, entonces la tarjeta muestra "Agotado" y el botón de agregar queda deshabilitado.
-- [ ] AC8 — Dada cualquier isla que consuma datos, entonces tiene skeleton mientras carga y mensaje con reintento si falla.
-- [ ] AC9 — Dado un viewport de 390 px, entonces se ve el layout de `Mobile.dc.html` (barra inferior flotante, bottom sheet) sin scroll horizontal.
-- [ ] AC10 — Dado el toggle de tema, entonces la landing conmuta claro/oscuro sin parpadeo ni error de hidratación.
+- [x] AC1 — Dado un visitante sin sesión, cuando abre `/`, entonces ve nav, hero, categorías, spotlight, thumbs, ofertas y destacado ancho con datos de la BD.
+- [x] AC2 — Dado `GET /api/storefront/products`, cuando responde 200, entonces ninguna fila trae `sku`, `isActive`, `deletedAt`, `createdAt`, `updatedAt` ni `categoryId`, y ninguna es inactiva o borrada.
+- [x] AC3 — Dado `GET /api/products` sin sesión, entonces responde 401 (la lectura admin deja de ser pública).
+- [x] AC4 — Dado el hero, cuando pasan 5,6 s o se pulsa una flecha/punto, entonces cambia de oferta con la transición de la nota MOTION y el autoplay se reinicia tras la acción manual.
+- [x] AC5 — Dado el buscador, cuando el visitante escribe, entonces tras 300 ms aparece el panel con máximo 4 resultados del servidor, o "Nada para X".
+- [x] AC6 — Dado un producto agregado, entonces el badge del carrito hace `bump`, el drawer lista las líneas y el total se calcula sumando centavos enteros.
+- [x] AC7 — Dado stock 0, entonces la tarjeta muestra "Agotado" y el botón de agregar queda deshabilitado.
+- [x] AC8 — Dada cualquier isla que consuma datos, entonces tiene skeleton mientras carga y mensaje con reintento si falla.
+- [x] AC9 — Dado un viewport de 390 px, entonces se ve el layout de `Mobile.dc.html` (barra inferior flotante, bottom sheet) sin scroll horizontal.
+- [x] AC10 — Dado el toggle de tema, entonces la landing conmuta claro/oscuro sin parpadeo ni error de hidratación.
 
 ## Datos
 Sin cambios de esquema. Todo sale de `products` y `categories` (7 productos, 6
@@ -138,3 +138,22 @@ por T15–T21:
   `scroll-snap` de CSS.
 - No se invocó ninguna skill: el repo ya tiene patrones vigentes de handler,
   service y hook para copiar.
+- **Allowlist de hosts de imagen (corrección de review, iteración 1).**
+  `src/lib/image-hosts.ts` es la única fuente de verdad y la consumen las tres
+  capas: `remotePatterns` en `next.config.ts`, la validación Zod de `imageUrl`
+  (productos y categorías, que además exige `https:`) y `ProductPhoto`, que
+  dibuja el marcador cuando el host no está permitido en vez de degradar a
+  `unoptimized`. Hosts actuales: `images.unsplash.com` (seed) y
+  `pe.tiendasishop.com` (producto cargado desde el panel).
+  Costo aceptado: **sumar un proveedor de imágenes nuevo obliga a tocar código y
+  desplegar**; quien carga productos no puede habilitarlo desde el panel. El
+  mensaje de error del formulario nombra los hosts aceptados para que ese límite
+  sea legible sin leer el código.
+- **Deuda para una fase futura.** La solución de fondo no es la allowlist sino
+  subir la imagen a Vercel Blob desde el panel y guardar la URL propia, en vez
+  de guardar URLs externas. Eso elimina la allowlist, el `remotePatterns`
+  abierto por host y la dependencia de que un tercero mantenga la foto viva.
+- **Filas heredadas fuera de la allowlist.** La lectura no pasa por el schema de
+  escritura, así que no rompen la landing. Pero la categoría `Mouse` tiene
+  `image_url` en `m.media-amazon.com`: editarla desde el panel falla en el campo
+  imagen hasta que se reemplace la URL. Está reportado, no tapado.

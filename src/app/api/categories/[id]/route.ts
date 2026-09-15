@@ -22,6 +22,8 @@ export async function GET(
   ctx: RouteContext<"/api/categories/[id]">,
 ) {
   try {
+    await requirePermission(PERMISSIONS.CATEGORIES_READ);
+
     const id = categoryIdSchema.parse((await ctx.params).id);
     const category = await categoryRepository.findById(id);
 

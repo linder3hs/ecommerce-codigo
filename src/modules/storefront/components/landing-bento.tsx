@@ -8,19 +8,19 @@ import {
   Laptop,
   Monitor,
   Package,
-  Plus,
   type LucideIcon,
 } from "lucide-react";
+import Link from "next/link";
 import { useMemo } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/modules/cart/store/cart-store";
 import { usePublicCategories } from "@/modules/categories/hooks/use-public-categories";
 import { usePublicProducts } from "@/modules/products/hooks/use-public-products";
 import type { PublicProduct } from "@/modules/products/types/public-product";
 
+import { productHref } from "../lib/catalog";
 import {
   discountLabel,
   isSoldOut,
@@ -32,7 +32,8 @@ import {
   selectWide,
   stockNote,
 } from "../lib/landing";
-import { CARD, CIRC, CIRC_DARK, LIFT, MONO, TAG, ZOOM } from "../lib/styles";
+import { CARD, CIRC, FOCUS_RING, LIFT, MONO, TAG, ZOOM } from "../lib/styles";
+import { AddToCartControl } from "./add-to-cart-control";
 import { OffersCountdown } from "./offers-countdown";
 import { ProductPhoto } from "./product-photo";
 import { StorefrontError } from "./storefront-error";
@@ -70,14 +71,17 @@ function CategoriesCard() {
                 const Icon = CATEGORY_ICONS[category.slug] ?? Package;
 
                 return (
-                  <span
+                  <Link
                     key={category.id}
+                    href={`/products?category=${category.slug}`}
                     title={category.name}
                     className={cn(CIRC, "size-[46px]")}
                   >
                     <Icon aria-hidden className="size-5" />
-                    <span className="sr-only">{category.name}</span>
-                  </span>
+                    <span className="sr-only">
+                      Ver catálogo de {category.name}
+                    </span>
+                  </Link>
                 );
               })}
         </div>
@@ -86,30 +90,20 @@ function CategoriesCard() {
   );
 }
 
-function AddButton({
-  product,
-  className,
-  children,
-}: {
-  product: PublicProduct;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  const add = useCartStore((state) => state.add);
-  const soldOut = isSoldOut(product);
-
+/**
+ * Enlace que cubre la tarjeta entera. Se usa donde el contenido está apilado
+ * sobre la foto y no hay un bloque contiguo que envolver: el resto de la
+ * tarjeta es texto, y los controles que sí son interactivos se levantan con
+ * `z-10` para quedar por encima.
+ */
+function CardLink({ product }: { product: PublicProduct }) {
   return (
-    <button
-      type="button"
-      onClick={() => add(product)}
-      disabled={soldOut}
-      aria-label={
-        soldOut ? `${product.name}: agotado` : `Agregar ${product.name}`
-      }
-      className={className}
+    <Link
+      href={productHref(product.slug)}
+      className={cn("absolute inset-0", FOCUS_RING)}
     >
-      {children}
-    </button>
+      <span className="sr-only">Ver {product.name}</span>
+    </Link>
   );
 }
 
@@ -129,14 +123,16 @@ function SpotlightCard({ product }: { product: PublicProduct }) {
         imageClassName={ZOOM}
       />
 
-      <AddButton
-        product={product}
-        className={cn(CIRC, "bg-surface absolute top-[18px] right-[18px]")}
-      >
-        <ArrowUpRight aria-hidden className="size-[17px]" />
-      </AddButton>
+      <CardLink product={product} />
 
-      <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-[oklch(0.12_0_0/76%)] to-transparent px-[22px] pt-[26px] pb-5 text-[oklch(0.99_0_0)]">
+      <AddToCartControl
+        product={product}
+        tone="surface"
+        icon="arrow"
+        className="absolute top-[18px] right-[18px] z-10"
+      />
+
+      <div className="pointer-events-none absolute inset-x-0 bottom-0 bg-linear-to-t from-[oklch(0.12_0_0/76%)] to-transparent px-[22px] pt-[26px] pb-5 text-[oklch(0.99_0_0)]">
         <p className="text-[17px] font-semibold tracking-[-0.02em]">
           {product.name}
         </p>
@@ -171,28 +167,35 @@ function ThumbsCard({
             {total} en catálogo
           </p>
         </div>
-        <span className={cn(CIRC, "size-[38px]")}>
+        <Link href="/products" className={cn(CIRC, "size-[38px]")}>
           <ArrowUpRight aria-hidden className="size-4" />
-        </span>
+          <span className="sr-only">Ver todo el catálogo</span>
+        </Link>
       </div>
 
+      {/* La miniatura es solo la foto: no hay sitio para precio ni para un
+          stepper, así que el click lleva a la ficha, que es donde se decide la
+          compra. El alta al carrito vive en las tarjetas que sí muestran precio. */}
       <div className="mt-4 grid min-h-0 flex-1 grid-cols-3 gap-2.5">
         {thumbs.map((product) => (
-          <AddButton
+          <Link
             key={product.id}
-            product={product}
+            href={productHref(product.slug)}
+            aria-label={`Ver ${product.name}`}
             className={cn(
               LIFT,
-              "group bg-sunk relative overflow-hidden rounded-thumb border-0 p-0 disabled:opacity-45",
+              FOCUS_RING,
+              "group bg-sunk relative overflow-hidden rounded-thumb",
+              isSoldOut(product) && "opacity-45",
             )}
           >
             <ProductPhoto
               src={product.imageUrl}
-              alt={product.name}
+              alt=""
               sizes="140px"
               imageClassName={ZOOM}
             />
-          </AddButton>
+          </Link>
         ))}
       </div>
     </section>
@@ -205,7 +208,7 @@ function WideCard({ product }: { product: PublicProduct }) {
       className={cn(
         CARD,
         LIFT,
-        "group hidden overflow-hidden lg:col-span-5 lg:grid lg:grid-cols-2",
+        "group relative hidden overflow-hidden lg:col-span-5 lg:grid lg:grid-cols-2",
       )}
     >
       <div className="flex flex-col justify-between py-[22px] pr-2 pl-6">
@@ -240,12 +243,11 @@ function WideCard({ product }: { product: PublicProduct }) {
           >
             {formatCents(product.priceCents)}
           </span>
-          <AddButton
+          <AddToCartControl
             product={product}
-            className={cn(CIRC, CIRC_DARK, "size-10")}
-          >
-            <ArrowUpRight aria-hidden className="size-[17px]" />
-          </AddButton>
+            icon="arrow"
+            className="relative z-10"
+          />
         </div>
       </div>
 
@@ -257,6 +259,11 @@ function WideCard({ product }: { product: PublicProduct }) {
           imageClassName={ZOOM}
         />
       </div>
+
+      {/* Último hijo a propósito: `ProductPhoto` es `relative`, así que un enlace
+          declarado antes quedaría pintado por debajo de la foto y la mitad
+          derecha de la tarjeta no navegaría. */}
+      <CardLink product={product} />
     </article>
   );
 }
@@ -269,9 +276,12 @@ function MobileCatalog({ products }: { products: PublicProduct[] }) {
         <h2 className="text-[16px] font-semibold tracking-[-0.025em]">
           Catálogo
         </h2>
-        <span className="text-ink-muted text-[12.5px]">
-          {products.length} productos
-        </span>
+        <Link
+          href="/products"
+          className="text-ink-muted hover:text-ink text-[12.5px] transition-colors"
+        >
+          Ver todo · {products.length} productos
+        </Link>
       </div>
 
       <ul className="snap-row -mx-4 flex gap-3 overflow-x-auto px-4 pb-1">
@@ -283,19 +293,25 @@ function MobileCatalog({ products }: { products: PublicProduct[] }) {
               key={product.id}
               className={cn(CARD, "snap-item flex w-[176px] shrink-0 flex-col p-2.5")}
             >
-              <ProductPhoto
-                src={product.imageUrl}
-                alt={product.name}
-                sizes="168px"
-                className={cn(
-                  "h-[124px] rounded-thumb",
-                  soldOut && "opacity-45",
-                )}
-              />
-              <div className="px-1.5 pt-3 pb-1">
-                <p className="line-clamp-2 text-[13.5px] leading-[1.3] font-medium text-pretty">
+              <Link
+                href={productHref(product.slug)}
+                className={cn("block rounded-thumb", FOCUS_RING)}
+              >
+                <ProductPhoto
+                  src={product.imageUrl}
+                  alt={product.name}
+                  sizes="168px"
+                  className={cn(
+                    "h-[124px] rounded-thumb",
+                    soldOut && "opacity-45",
+                  )}
+                />
+                <p className="line-clamp-2 px-1.5 pt-3 text-[13.5px] leading-[1.3] font-medium text-pretty">
                   {product.name}
                 </p>
+              </Link>
+
+              <div className="px-1.5 pb-1">
                 <p className="text-ink-muted mt-0.5 text-[11.5px]">
                   {stockNote(product)}
                 </p>
@@ -308,12 +324,7 @@ function MobileCatalog({ products }: { products: PublicProduct[] }) {
                   >
                     {formatCents(product.priceCents)}
                   </span>
-                  <AddButton
-                    product={product}
-                    className={cn(CIRC, CIRC_DARK, "size-[34px]")}
-                  >
-                    <Plus aria-hidden className="size-[15px]" />
-                  </AddButton>
+                  <AddToCartControl product={product} size="sm" />
                 </div>
               </div>
             </li>

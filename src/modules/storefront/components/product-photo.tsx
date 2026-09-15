@@ -1,27 +1,18 @@
 import { ImageOff } from "lucide-react";
 import Image from "next/image";
 
+import { isAllowedImageUrl } from "@/lib/image-hosts";
 import { cn } from "@/lib/utils";
 
 /**
- * Espejo de `images.remotePatterns` en `next.config.ts`. `image_url` lo escribe
- * quien carga el producto en el panel, así que puede apuntar a cualquier host:
- * el optimizador de Next lanza una excepción con un host no configurado y
- * tumbaría la landing entera. Fuera de la lista la foto se sirve sin optimizar,
- * que es peor rendimiento pero no una página rota.
+ * El Zod de `imageUrl` ya rechaza hosts fuera de la allowlist, pero pueden
+ * quedar filas viejas cargadas antes de esa restricción. Una URL así no se
+ * carga: el optimizador de Next lanza con un host no configurado y tumbaría la
+ * landing entera, y servirla sin optimizar traería contenido de un origen
+ * arbitrario. Se degrada al marcador, igual que cuando `image_url` es null.
  */
-const OPTIMIZED_HOSTS = new Set(["images.unsplash.com"]);
-
-function isOptimizedSource(src: string): boolean {
-  if (src.startsWith("/")) {
-    return true;
-  }
-
-  try {
-    return OPTIMIZED_HOSTS.has(new URL(src).hostname);
-  } catch {
-    return false;
-  }
+function isRenderableSource(src: string): boolean {
+  return src.startsWith("/") || isAllowedImageUrl(src);
 }
 
 type ProductPhotoProps = {
@@ -47,21 +38,22 @@ export function ProductPhoto({
   imageClassName,
   priority = false,
 }: ProductPhotoProps) {
+  const source = src !== null && isRenderableSource(src) ? src : null;
+
   return (
     <div className={cn("bg-sunk relative size-full overflow-hidden", className)}>
-      {src === null ? (
+      {source === null ? (
         <div className="text-ink-muted flex size-full items-center justify-center">
           <ImageOff aria-hidden className="size-6" />
           <span className="sr-only">{alt}</span>
         </div>
       ) : (
         <Image
-          src={src}
+          src={source}
           alt={alt}
           fill
           sizes={sizes}
           priority={priority}
-          unoptimized={!isOptimizedSource(src)}
           className={cn("object-cover", imageClassName)}
         />
       )}

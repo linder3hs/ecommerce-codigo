@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import { AMOUNT_INPUT_PATTERN, toCents } from "@/lib/format";
+import { IMAGE_URL_HOST_MESSAGE, isAllowedImageUrl } from "@/lib/image-hosts";
 
 // 999.999.999 centavos = S/ 9.999.999,99, el tope que cabe en el `integer` de
 // Postgres (2.147.483.647) de `price_cents`. Rechazarlo aquí devuelve 400 con
@@ -97,6 +98,7 @@ export const createProductSchema = z.object({
   imageUrl: z
     .url("La URL de imagen no es válida.")
     .max(2048, "La URL admite máximo 2048 caracteres.")
+    .refine(isAllowedImageUrl, IMAGE_URL_HOST_MESSAGE)
     .nullish(),
   isActive: z.boolean("El estado debe ser verdadero o falso.").default(true),
 });

@@ -75,6 +75,7 @@ Fuera de `src/`: `docs/specs/` (specs SDD), `drizzle/` (migraciones),
 | Schema Drizzle        | singular                  | `src/server/db/schema/product.ts` |
 | Tabla en Postgres     | snake_case plural         | `products`, `order_items`         |
 | Route Handler         | `route.ts`                | `app/api/products/route.ts`       |
+| Archivo de test       | `<archivo>.test.ts`       | `format.test.ts`                  |
 
 ## 3. Flujo de datos
 
@@ -118,3 +119,36 @@ define su spec; columnas de RBAC y auditoría en [DATA-MODEL.md](DATA-MODEL.md).
 
 Clerk es la fuente de verdad de la **autenticación**; Postgres, de la
 **autorización**. `users` se sincroniza por webhook.
+
+## 5. Testing (unidad)
+
+**Alcance:** solo lógica pura/de negocio/servidor — `lib/`, `server/repositories/`,
+`server/checkout/`, `modules/<dominio>/services/`, `modules/<dominio>/lib/`,
+wrappers exportados de `modules/<dominio>/schemas/` y selectores puros de
+`modules/<dominio>/store/`. Nunca componentes, hooks ni nada que dependa del árbol
+de React — eso es responsabilidad de otra capa de testing (no cubierta aquí). El
+inventario vivo de qué función es candidata está en
+[docs/testing/unit-testable-functions.md](testing/unit-testable-functions.md).
+
+**Ubicación:** co-localizado — el test vive en el mismo directorio que el archivo
+que prueba, nunca en un árbol `__tests__/` espejo aparte.
+
+**Nombre:** mismo nombre del archivo fuente + sufijo `.test.ts`.
+
+```
+src/lib/
+├── format.ts
+└── format.test.ts
+
+src/server/repositories/
+├── product.repository.ts
+└── product.repository.test.ts
+
+src/modules/orders/lib/
+├── date-range.ts
+└── date-range.test.ts
+```
+
+**Runner:** `node --test` nativo (`node:test` + `node:assert`), sin dependencias
+de terceros — cubre esta capa porque es TypeScript sin JSX. No agregar Jest/Vitest
+para esto salvo que la tarea explícitamente empiece a cubrir componentes/hooks.

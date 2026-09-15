@@ -12,6 +12,8 @@ export const publicProductKeys = {
   lists: () => [...publicProductKeys.all, "list"] as const,
   list: (params: PublicProductQueryInput) =>
     [...publicProductKeys.lists(), params] as const,
+  details: () => [...publicProductKeys.all, "detail"] as const,
+  detail: (slug: string) => [...publicProductKeys.details(), slug] as const,
 };
 
 export function usePublicProducts(

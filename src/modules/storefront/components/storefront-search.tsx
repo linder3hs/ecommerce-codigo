@@ -1,13 +1,14 @@
 "use client";
 
-import { Search, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { ArrowUpRight, Search, X } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { Skeleton } from "@/components/ui/skeleton";
 import { useDebounce } from "@/hooks/use-debounce";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
-import { useCartStore } from "@/modules/cart/store/cart-store";
 import { usePublicProducts } from "@/modules/products/hooks/use-public-products";
 import type { PublicProduct } from "@/modules/products/types/public-product";
 
@@ -16,6 +17,7 @@ import {
   SEARCH_DEBOUNCE_MS,
   stockNote,
 } from "../lib/landing";
+import { resolveSearchHref } from "../lib/search-target";
 import { CARD, CIRC, CIRC_DARK, MONO } from "../lib/styles";
 import { ProductPhoto } from "./product-photo";
 import { StorefrontError } from "./storefront-error";
@@ -32,6 +34,32 @@ const INPUT_CLASS =
  * está entero en el cliente—, así que cada tecla espera 300 ms antes de salir
  * a la red y la consulta solo se dispara con texto escrito.
  */
+/** Href del catálogo con la búsqueda ya aplicada. */
+function catalogHref(value: string): string {
+  return `/products?q=${encodeURIComponent(value.trim())}`;
+}
+
+/**
+ * Enter en el campo lleva al catálogo con el término aplicado: el panel solo
+ * muestra los primeros resultados y la lista completa vive en `/products`.
+ */
+function useSubmitToCatalog(value: string, onDone: () => void) {
+  const router = useRouter();
+
+  return useCallback(
+    (event: React.KeyboardEvent<HTMLInputElement>) => {
+      if (event.key !== "Enter" || value.trim() === "") {
+        return;
+      }
+
+      event.preventDefault();
+      router.push(catalogHref(value));
+      onDone();
+    },
+    [router, value, onDone],
+  );
+}
+
 function useSearchResults(rawQuery: string) {
   const debounced = useDebounce(rawQuery.trim(), SEARCH_DEBOUNCE_MS);
 
@@ -58,7 +86,6 @@ type SearchResultsProps = {
 };
 
 function SearchResults({ value, onPicked }: SearchResultsProps) {
-  const add = useCartStore((state) => state.add);
   const { debounced, query } = useSearchResults(value);
 
   if (query.isPending || debounced !== value.trim()) {
@@ -100,12 +127,12 @@ function SearchResults({ value, onPicked }: SearchResultsProps) {
     <ul>
       {results.map((product) => (
         <li key={product.id}>
-          <button
-            type="button"
-            onClick={() => {
-              add(product);
-              onPicked();
-            }}
+          {/* Enlace y no botón de alta: desde el buscador la persona está
+              eligiendo qué mirar, no qué comprar. El destino —ficha o catálogo
+              filtrado— lo decide `resolveSearchHref`. */}
+          <Link
+            href={resolveSearchHref(value, product, results.length)}
+            onClick={onPicked}
             className="hover:bg-sunk grid w-full grid-cols-[52px_minmax(0,1fr)_auto] items-center gap-3.5 rounded-[20px] border-0 bg-transparent p-2 text-left transition-colors"
           >
             <ProductPhoto
@@ -125,9 +152,19 @@ function SearchResults({ value, onPicked }: SearchResultsProps) {
             <span className={cn(MONO, "text-[14px] font-medium")}>
               {formatCents(product.priceCents)}
             </span>
-          </button>
+          </Link>
         </li>
       ))}
+      <li>
+        <Link
+          href={catalogHref(value)}
+          onClick={onPicked}
+          className="hover:bg-sunk flex w-full items-center justify-between gap-3 rounded-[20px] px-4 py-3 text-[13.5px] font-medium transition-colors"
+        >
+          Ver todos los resultados
+          <ArrowUpRight aria-hidden className="size-4" />
+        </Link>
+      </li>
     </ul>
   );
 }
@@ -136,6 +173,8 @@ function SearchResults({ value, onPicked }: SearchResultsProps) {
 export function DesktopSearch() {
   const [value, setValue] = useState("");
   const isOpen = value.trim() !== "";
+  const clear = useCallback(() => setValue(""), []);
+  const submit = useSubmitToCatalog(value, clear);
 
   return (
     <div className="relative hidden max-w-[560px] flex-1 lg:block">
@@ -153,12 +192,13 @@ export function DesktopSearch() {
           type="search"
           value={value}
           onChange={(event) => setValue(event.target.value)}
+          onKeyDown={submit}
           placeholder={PLACEHOLDER}
           className={cn(INPUT_CLASS, "text-[14.5px]")}
         />
         <button
           type="button"
-          onClick={() => setValue("")}
+          onClick={clear}
           aria-label={isOpen ? "Limpiar búsqueda" : "Buscar"}
           className={cn(CIRC, CIRC_DARK)}
         >
@@ -174,7 +214,7 @@ export function DesktopSearch() {
         <>
           <div
             aria-hidden
-            onClick={() => setValue("")}
+            onClick={clear}
             className="storefront-overlay animate-in fade-in-0 fixed inset-0 z-40 duration-200"
           />
           <div
@@ -183,7 +223,7 @@ export function DesktopSearch() {
               "animate-in fade-in-0 slide-in-from-top-2 absolute top-[calc(100%+12px)] left-0 z-50 w-[560px] rounded-bento p-2.5 shadow-float duration-200",
             )}
           >
-            <SearchResults value={value} onPicked={() => setValue("")} />
+            <SearchResults value={value} onPicked={clear} />
           </div>
         </>
       ) : null}
@@ -216,14 +256,17 @@ export function MobileSearch({ open, onClose }: MobileSearchProps) {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [open, onClose]);
 
+  // Declarados antes del retorno temprano: `useSubmitToCatalog` es un hook y no
+  // puede quedar detrás de un `if`.
+  const close = useCallback(() => {
+    setValue("");
+    onClose();
+  }, [onClose]);
+  const submit = useSubmitToCatalog(value, close);
+
   if (!open) {
     return null;
   }
-
-  const close = () => {
-    setValue("");
-    onClose();
-  };
 
   return (
     <div className="storefront-canvas animate-in fade-in-0 fixed inset-0 z-70 flex flex-col gap-3 px-4 pt-5 pb-5 duration-200 lg:hidden">
@@ -243,6 +286,7 @@ export function MobileSearch({ open, onClose }: MobileSearchProps) {
             autoFocus
             value={value}
             onChange={(event) => setValue(event.target.value)}
+            onKeyDown={submit}
             placeholder={PLACEHOLDER}
             className={cn(INPUT_CLASS, "text-[15px]")}
           />
