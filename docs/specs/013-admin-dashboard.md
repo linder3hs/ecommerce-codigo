@@ -79,9 +79,9 @@ parsea (schema como única fuente de verdad del contrato, evita el tipo duplicad
 - [x] T6 — Helpers puros de relleno de series (30 días en cero, 3 estados en cero) · `src/modules/dashboard/lib/series.ts`
 - [x] T7 — Test de los helpers · `src/modules/dashboard/lib/series.test.ts`
 - [x] T8 — Route Handler GET con `requirePermission('metrics.read')` y `Promise.all` de las 3 consultas · `src/app/api/admin/dashboard/route.ts`
-- [ ] T9 — Service axios tipado · `src/modules/dashboard/services/dashboard.service.ts`
-- [ ] T10 — Test del service · `src/modules/dashboard/services/dashboard.service.test.ts`
-- [ ] T11 — Hook `useDashboardMetrics` con `refetchInterval` · `src/modules/dashboard/hooks/use-dashboard-metrics.ts`
+- [x] T9 — Service axios tipado · `src/modules/dashboard/services/dashboard.service.ts`
+- [x] T10 — Test del service · `src/modules/dashboard/services/dashboard.service.test.ts`
+- [x] T11 — Hook `useDashboardMetrics` con `refetchInterval` · `src/modules/dashboard/hooks/use-dashboard-metrics.ts`
 - [ ] T12 — Widget de ventas por día (línea) · `src/modules/dashboard/components/sales-by-day-chart.tsx`
 - [ ] T13 — Widget de órdenes por estado (barras) · `src/modules/dashboard/components/orders-by-status-chart.tsx`
 - [ ] T14 — Widget de stock bajo (tabla) · `src/modules/dashboard/components/low-stock-table.tsx`
