@@ -72,8 +72,8 @@ parsea (schema como única fuente de verdad del contrato, evita el tipo duplicad
 
 ## Tareas
 - [x] T1 — Constantes del módulo (`dashboardKeys`, `SALES_WINDOW_DAYS = 30`, `LOW_STOCK_THRESHOLD = 5`, `LOW_STOCK_LIMIT = 20`, `REFETCH_INTERVAL_MS = 30_000`) · `src/modules/dashboard/constants.ts`
-- [ ] T2 — Repositorio con 3 funciones agregadas: `sumPaidTotalsByDay(since)`, `countOrdersByStatus()`, `findLowStockProducts(threshold, limit)` · `src/server/repositories/dashboard.repository.ts`
-- [ ] T3 — Test del repositorio (mismo patrón que `order.repository.test.ts`) · `src/server/repositories/dashboard.repository.test.ts`
+- [x] T2 — Repositorio con 3 funciones agregadas: `sumPaidTotalsByDay(since)`, `countOrdersByStatus()`, `findLowStockProducts(threshold, limit)` · `src/server/repositories/dashboard.repository.ts`
+- [x] T3 — Test del repositorio (mismo patrón que `order.repository.test.ts`) · `src/server/repositories/dashboard.repository.test.ts`
 - [x] T4 — Schema Zod de la respuesta + tipos inferidos · `src/modules/dashboard/schemas/dashboard.schema.ts`, `src/modules/dashboard/types/dashboard.ts`
 - [x] T5 — Test del schema · `src/modules/dashboard/schemas/dashboard.schema.test.ts`
 - [x] T6 — Helpers puros de relleno de series (30 días en cero, 3 estados en cero) · `src/modules/dashboard/lib/series.ts`
