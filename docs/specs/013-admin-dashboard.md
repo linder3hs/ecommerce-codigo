@@ -1,7 +1,7 @@
 ---
 id: 013
 title: Dashboard admin con métricas en vivo
-status: in-review
+status: done
 module: dashboard
 scope: admin
 ---
