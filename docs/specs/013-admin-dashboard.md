@@ -1,7 +1,7 @@
 ---
 id: 013
 title: Dashboard admin con métricas en vivo
-status: in-progress
+status: in-review
 module: dashboard
 scope: admin
 ---
@@ -86,8 +86,8 @@ parsea (schema como única fuente de verdad del contrato, evita el tipo duplicad
 - [x] T13 — Widget de órdenes por estado (barras) · `src/modules/dashboard/components/orders-by-status-chart.tsx`
 - [x] T14 — Widget de stock bajo (tabla) · `src/modules/dashboard/components/low-stock-table.tsx`
 - [x] T15 — Vista cliente que consume el hook una vez y reparte a los 3 widgets, con pending/error · `src/modules/dashboard/components/dashboard-view.tsx`
-- [ ] T16 — Página shell (Server Component, gate `metrics.read` → redirect `/admin/categories`) · `src/app/(admin)/admin/dashboard/page.tsx`
-- [ ] T17 — Ítem "Dashboard" en `NAV_ITEMS` con `requiredPermission: "metrics.read"` · `src/components/shared/admin-sidebar.tsx`
+- [x] T16 — Página shell (Server Component, gate `metrics.read` → redirect `/admin/categories`) · `src/app/(admin)/admin/dashboard/page.tsx`
+- [x] T17 — Ítem "Dashboard" en `NAV_ITEMS` con `requiredPermission: "metrics.read"` · `src/components/shared/admin-sidebar.tsx`
 
 Verificación final: `npm run typecheck && npm run lint`
 

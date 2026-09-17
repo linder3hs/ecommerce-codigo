@@ -2,6 +2,7 @@
 
 import { SignOutButton } from "@clerk/nextjs";
 import {
+  LayoutDashboard,
   LogOut,
   Menu,
   Package,
@@ -42,6 +43,12 @@ type NavItem = {
 // compila. El catálogo `PERMISSIONS` no se importa aquí porque vive en un
 // módulo `server-only` y este componente corre en el cliente.
 const NAV_ITEMS: readonly NavItem[] = [
+  {
+    href: "/admin/dashboard",
+    label: "Dashboard",
+    icon: LayoutDashboard,
+    requiredPermission: "metrics.read",
+  },
   {
     href: "/admin/categories",
     label: "Categorías",
