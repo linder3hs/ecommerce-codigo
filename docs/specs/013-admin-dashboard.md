@@ -78,7 +78,7 @@ parsea (schema como única fuente de verdad del contrato, evita el tipo duplicad
 - [x] T5 — Test del schema · `src/modules/dashboard/schemas/dashboard.schema.test.ts`
 - [x] T6 — Helpers puros de relleno de series (30 días en cero, 3 estados en cero) · `src/modules/dashboard/lib/series.ts`
 - [x] T7 — Test de los helpers · `src/modules/dashboard/lib/series.test.ts`
-- [ ] T8 — Route Handler GET con `requirePermission('metrics.read')` y `Promise.all` de las 3 consultas · `src/app/api/admin/dashboard/route.ts`
+- [x] T8 — Route Handler GET con `requirePermission('metrics.read')` y `Promise.all` de las 3 consultas · `src/app/api/admin/dashboard/route.ts`
 - [ ] T9 — Service axios tipado · `src/modules/dashboard/services/dashboard.service.ts`
 - [ ] T10 — Test del service · `src/modules/dashboard/services/dashboard.service.test.ts`
 - [ ] T11 — Hook `useDashboardMetrics` con `refetchInterval` · `src/modules/dashboard/hooks/use-dashboard-metrics.ts`
