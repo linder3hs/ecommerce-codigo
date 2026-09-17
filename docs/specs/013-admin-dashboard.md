@@ -82,10 +82,10 @@ parsea (schema como única fuente de verdad del contrato, evita el tipo duplicad
 - [x] T9 — Service axios tipado · `src/modules/dashboard/services/dashboard.service.ts`
 - [x] T10 — Test del service · `src/modules/dashboard/services/dashboard.service.test.ts`
 - [x] T11 — Hook `useDashboardMetrics` con `refetchInterval` · `src/modules/dashboard/hooks/use-dashboard-metrics.ts`
-- [ ] T12 — Widget de ventas por día (línea) · `src/modules/dashboard/components/sales-by-day-chart.tsx`
-- [ ] T13 — Widget de órdenes por estado (barras) · `src/modules/dashboard/components/orders-by-status-chart.tsx`
-- [ ] T14 — Widget de stock bajo (tabla) · `src/modules/dashboard/components/low-stock-table.tsx`
-- [ ] T15 — Vista cliente que consume el hook una vez y reparte a los 3 widgets, con pending/error · `src/modules/dashboard/components/dashboard-view.tsx`
+- [x] T12 — Widget de ventas por día (línea) · `src/modules/dashboard/components/sales-by-day-chart.tsx`
+- [x] T13 — Widget de órdenes por estado (barras) · `src/modules/dashboard/components/orders-by-status-chart.tsx`
+- [x] T14 — Widget de stock bajo (tabla) · `src/modules/dashboard/components/low-stock-table.tsx`
+- [x] T15 — Vista cliente que consume el hook una vez y reparte a los 3 widgets, con pending/error · `src/modules/dashboard/components/dashboard-view.tsx`
 - [ ] T16 — Página shell (Server Component, gate `metrics.read` → redirect `/admin/categories`) · `src/app/(admin)/admin/dashboard/page.tsx`
 - [ ] T17 — Ítem "Dashboard" en `NAV_ITEMS` con `requiredPermission: "metrics.read"` · `src/components/shared/admin-sidebar.tsx`
 
@@ -109,3 +109,9 @@ Verificación final: `npm run typecheck && npm run lint`
 - `/api/admin/metrics` (usuarios y auditoría) se mantiene aparte; no se fusiona.
 - Verificar que `shadcn add chart` no intente bajar `recharts` a 2.x (instalado 3.10.1);
   si lo intenta, conservar 3.x y usar Recharts directo en los widgets.
+- **Resultado real de `shadcn add chart`:** no bajó a 2.x, pero fijó `recharts` en
+  `^3.8.0` y agregó una dependencia `cn@^0.3.0` (el `chart.tsx` generado importaba
+  `cn` desde el paquete `cn`, no desde `@/lib/utils`). Se revirtieron las dos cosas:
+  `package.json`/lockfile quedan sin cambios, `recharts` sigue en 3.10.1 y el import
+  apunta a `@/lib/utils`. El wrapper de shadcn typechequea contra recharts 3.10.1, así
+  que los widgets lo usan y no Recharts directo.
