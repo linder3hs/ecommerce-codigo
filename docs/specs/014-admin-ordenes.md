@@ -75,7 +75,7 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T1 — `list(params)` + tipos `ListAdminOrdersParams`/`AdminOrderListRow` (innerJoin a `users`, `buildFilters` fecha/status/`ilike` email+nombre; el `count` lleva el mismo innerJoin o el WHERE no resuelve) · `src/server/repositories/order.repository.ts`
 - [x] T2 — `findByIdWithItemsForAdmin(id)` (orden + cliente + líneas, sin filtro por dueño) · `src/server/repositories/order.repository.ts`
 - [x] T3 — `setStatus(id, status, expectedStatus, tx)` con guarda `eq(orders.status, expectedStatus)` en el WHERE, devuelve `null` si no coincide · `src/server/repositories/order.repository.ts`
-- [ ] T4 — `it.todo` de las tres funciones nuevas con la nota de bloqueo `server-only` ya usada en el archivo · `src/server/repositories/order.repository.test.ts`
+- [x] T4 — `it.todo` de las tres funciones nuevas con la nota de bloqueo `server-only` ya usada en el archivo · `src/server/repositories/order.repository.test.ts`
 - [ ] T5 — Schemas Zod del listado, id y cambio de estado · `src/modules/orders/schemas/admin-order.schema.ts`
 - [ ] T6 — Tipos de respuesta (`AdminOrderListItem`, `AdminOrderDetail`, `*Response`) derivados del schema Drizzle con `import type` · `src/modules/orders/types/admin-order.ts`
 - [ ] T7 — Constantes del módulo: `adminOrderKeys`, `DEFAULT_PAGE_SIZE`, `PAGE_SIZE_OPTIONS`, `ALL_FILTER_VALUE`, `ORDER_STATUS_LABELS`/`OPTIONS` · `src/modules/orders/constants.ts`
