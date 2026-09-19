@@ -82,7 +82,7 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T8 — `GET` del listado: `requirePermission('orders.read')`, parseo de query, `meta` de paginación · `src/app/api/admin/orders/route.ts`
 - [x] T9 — `GET` del detalle: `orders.read` + `NotFoundError` · `src/app/api/admin/orders/[id]/route.ts`
 - [x] T10 — `PATCH` del estado: `orders.update_status`, 400 si `status === expectedStatus`, `getDb().transaction` con `setStatus` + `logAudit` (`severity: "warning"`; `ConflictError` si devuelve `null`) · `src/app/api/admin/orders/[id]/status/route.ts`
-- [ ] T11 — Service axios (`list`, `detail`, `updateStatus`) · `src/modules/orders/services/admin-order.service.ts`
+- [x] T11 — Service axios (`list`, `detail`, `updateStatus`) · `src/modules/orders/services/admin-order.service.ts`
 - [ ] T12 — Test del service (params y ruta llamada), patrón de `audit-log.service.test.ts` · `src/modules/orders/services/admin-order.service.test.ts`
 - [ ] T13 — Hooks de lectura (`useAdminOrders`, `useAdminOrder`) con `keepPreviousData` · `src/modules/orders/hooks/use-admin-orders.ts`
 - [ ] T14 — Hook de mutación que invalida `lists()` y `detail(id)` · `src/modules/orders/hooks/use-update-order-status.ts`
