@@ -76,9 +76,9 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T2 — `findByIdWithItemsForAdmin(id)` (orden + cliente + líneas, sin filtro por dueño) · `src/server/repositories/order.repository.ts`
 - [x] T3 — `setStatus(id, status, expectedStatus, tx)` con guarda `eq(orders.status, expectedStatus)` en el WHERE, devuelve `null` si no coincide · `src/server/repositories/order.repository.ts`
 - [x] T4 — `it.todo` de las tres funciones nuevas con la nota de bloqueo `server-only` ya usada en el archivo · `src/server/repositories/order.repository.test.ts`
-- [ ] T5 — Schemas Zod del listado, id y cambio de estado · `src/modules/orders/schemas/admin-order.schema.ts`
-- [ ] T6 — Tipos de respuesta (`AdminOrderListItem`, `AdminOrderDetail`, `*Response`) derivados del schema Drizzle con `import type` · `src/modules/orders/types/admin-order.ts`
-- [ ] T7 — Constantes del módulo: `adminOrderKeys`, `DEFAULT_PAGE_SIZE`, `PAGE_SIZE_OPTIONS`, `ALL_FILTER_VALUE`, `ORDER_STATUS_LABELS`/`OPTIONS` · `src/modules/orders/constants.ts`
+- [x] T5 — Schemas Zod del listado, id y cambio de estado · `src/modules/orders/schemas/admin-order.schema.ts`
+- [x] T6 — Tipos de respuesta (`AdminOrderListItem`, `AdminOrderDetail`, `*Response`) derivados del schema Drizzle con `import type` · `src/modules/orders/types/admin-order.ts`
+- [x] T7 — Constantes del módulo: `adminOrderKeys`, `DEFAULT_PAGE_SIZE`, `PAGE_SIZE_OPTIONS`, `ALL_FILTER_VALUE`, `ORDER_STATUS_LABELS`/`OPTIONS` · `src/modules/orders/constants.ts`
 - [ ] T8 — `GET` del listado: `requirePermission('orders.read')`, parseo de query, `meta` de paginación · `src/app/api/admin/orders/route.ts`
 - [ ] T9 — `GET` del detalle: `orders.read` + `NotFoundError` · `src/app/api/admin/orders/[id]/route.ts`
 - [ ] T10 — `PATCH` del estado: `orders.update_status`, 400 si `status === expectedStatus`, `getDb().transaction` con `setStatus` + `logAudit` (`severity: "warning"`; `ConflictError` si devuelve `null`) · `src/app/api/admin/orders/[id]/status/route.ts`
