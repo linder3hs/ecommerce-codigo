@@ -1,15 +1,10 @@
 import "server-only";
 
+import { formatCustomerName } from "@/lib/format";
 import { getStripe } from "@/lib/stripe";
 import { userRepository } from "@/server/repositories/user.repository";
 
 import type { UserRow } from "@/server/repositories/user.repository";
-
-function fullName(user: UserRow): string | undefined {
-  const name = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
-
-  return name.length > 0 ? name : undefined;
-}
 
 /**
  * Customer de Stripe del comprador, creándolo la primera vez. El id se guarda
@@ -31,7 +26,8 @@ export async function getOrCreateStripeCustomer(
 
   const customer = await getStripe().customers.create({
     email: user.email,
-    name: fullName(user),
+    // `undefined` y no un texto de relleno: el campo queda ausente en Stripe.
+    name: formatCustomerName(user, undefined),
     metadata: { appUserId: user.id },
   });
 

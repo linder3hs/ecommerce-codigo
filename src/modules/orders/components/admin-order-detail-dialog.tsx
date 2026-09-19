@@ -30,7 +30,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatCustomerName } from "@/lib/format";
 import { ORDER_STATUSES } from "@/modules/dashboard/constants";
 
 import { ORDER_STATUS_LABELS } from "../constants";
@@ -57,14 +57,6 @@ const dateTimeFormatter = new Intl.DateTimeFormat("es", {
   dateStyle: "long",
   timeStyle: "short",
 });
-
-function customerName(customer: AdminOrderDetail["customer"]): string {
-  // `firstName`/`lastName` son nullable: la cuenta puede existir sin nombre.
-  return (
-    [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
-    "Sin nombre"
-  );
-}
 
 /**
  * Control del cambio de estado. Solo se monta con `orders.update_status`: sin el
@@ -177,7 +169,7 @@ function OrderDetailBody({
         <div className="grid gap-0.5">
           <dt className="text-muted-foreground text-xs">Cliente</dt>
           <dd className="text-sm">
-            {customerName(order.customer)}
+            {formatCustomerName(order.customer, "Sin nombre")}
             <span className="text-muted-foreground block break-words">
               {order.customer.email}
             </span>

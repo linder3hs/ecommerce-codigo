@@ -11,6 +11,7 @@ import {
   AMOUNT_INPUT_PATTERN,
   centsToAmountInput,
   formatCents,
+  formatCustomerName,
   toCents,
 } from "./format";
 
@@ -249,5 +250,49 @@ describe("centsToAmountInput", () => {
 
   it("does not round-trip a negative amount, which toCents rejects", () => {
     assert.equal(toCents(centsToAmountInput(-50)), null);
+  });
+});
+
+describe("formatCustomerName", () => {
+  it("joins both parts with a single space", () => {
+    assert.equal(
+      formatCustomerName({ firstName: "Ada", lastName: "Lovelace" }, "Sin nombre"),
+      "Ada Lovelace",
+    );
+  });
+
+  it("returns the only part present without padding the missing one", () => {
+    assert.equal(
+      formatCustomerName({ firstName: "Ada", lastName: null }, "Sin nombre"),
+      "Ada",
+    );
+    assert.equal(
+      formatCustomerName({ firstName: null, lastName: "Lovelace" }, "Sin nombre"),
+      "Lovelace",
+    );
+  });
+
+  it("returns the fallback when both parts are null", () => {
+    assert.equal(
+      formatCustomerName({ firstName: null, lastName: null }, "Sin nombre"),
+      "Sin nombre",
+    );
+  });
+
+  // Los tres consumidores piden reemplazos distintos: texto en el panel, `null`
+  // para caer al email y `undefined` para dejar el campo ausente en Stripe.
+  it("returns the fallback as given, including null and undefined", () => {
+    assert.equal(formatCustomerName({ firstName: null, lastName: null }, null), null);
+    assert.equal(
+      formatCustomerName({ firstName: null, lastName: null }, undefined),
+      undefined,
+    );
+  });
+
+  it("treats a whitespace-only name as absent", () => {
+    assert.equal(
+      formatCustomerName({ firstName: " ", lastName: null }, "Sin nombre"),
+      "Sin nombre",
+    );
   });
 });

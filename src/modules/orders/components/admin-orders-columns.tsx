@@ -6,7 +6,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatCustomerName } from "@/lib/format";
 
 import { ORDER_STATUS_LABELS } from "../constants";
 
@@ -36,14 +36,6 @@ const STATUS_VARIANTS: Record<
   payment_failed: "destructive",
 };
 
-function customerName(customer: AdminOrderListItem["customer"]): string {
-  // `firstName`/`lastName` son nullable: la cuenta puede existir sin nombre.
-  return (
-    [customer.firstName, customer.lastName].filter(Boolean).join(" ") ||
-    "Sin nombre"
-  );
-}
-
 const helper = createColumnHelper<
   typeof adminOrdersTableFeatures,
   AdminOrderListItem
@@ -66,7 +58,9 @@ export function createAdminOrdersColumns(
 
         return (
           <div className="min-w-0">
-            <p className="truncate font-medium">{customerName(customer)}</p>
+            <p className="truncate font-medium">
+              {formatCustomerName(customer, "Sin nombre")}
+            </p>
             <p className="text-muted-foreground truncate text-xs">
               {customer.email}
             </p>
@@ -114,7 +108,10 @@ export function createAdminOrdersColumns(
               variant="outline"
               size="sm"
               onClick={() => onView(order)}
-              aria-label={`Ver la orden de ${customerName(order.customer)}`}
+              aria-label={`Ver la orden de ${formatCustomerName(
+                order.customer,
+                "Sin nombre",
+              )}`}
             >
               Ver
             </Button>
