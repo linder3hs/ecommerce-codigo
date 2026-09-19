@@ -82,9 +82,9 @@ Zod:
 - [x] T5 — Constante `INVENTORY_DEFAULT_QUERY` (`sortBy: "stock"`, `sortDir: "asc"`, `pageSize: 20`) · `src/modules/products/constants.ts`
 - [x] T6 — Traducir `lowStockOnly` → `maxStock: LOW_STOCK_THRESHOLD` en el `GET` existente · `src/app/api/products/route.ts`
 - [x] T7 — `PATCH` del ajuste: `requirePermission('products.update')`, `adjustStockSchema`, `getDb().transaction` con `adjustStock` + `logAudit`; la tx **devuelve** el resultado y el `switch` va fuera (no hay clase de error 400 en `api-error.ts`): `not_found` → `NotFoundError`, `insufficient` → `jsonError(400, …stock actual N…)` · `src/app/api/products/[id]/stock/route.ts`
-- [ ] T8 — `adjustStock(id, delta)` en el service existente (`PATCH /products/:id/stock`, devuelve `Product`) · `src/modules/products/services/product.service.ts`
-- [ ] T9 — Test del nuevo método del service (ruta y body enviados) · `src/modules/products/services/product.service.test.ts`
-- [ ] T10 — Hook de mutación que invalida `productKeys.lists()` y `productKeys.detail(id)` en éxito y también en error (tras un 400 la fila en pantalla está desactualizada) · `src/modules/products/hooks/use-adjust-stock.ts`
+- [x] T8 — `adjustStock(id, delta)` en el service existente (`PATCH /products/:id/stock`, devuelve `Product`) · `src/modules/products/services/product.service.ts`
+- [x] T9 — Test del nuevo método del service (ruta y body enviados) · `src/modules/products/services/product.service.test.ts`
+- [x] T10 — Hook de mutación que invalida `productKeys.lists()` y `productKeys.detail(id)` en éxito y también en error (tras un 400 la fila en pantalla está desactualizada) · `src/modules/products/hooks/use-adjust-stock.ts`
 - [ ] T11 — Columnas: nombre, SKU, categoría, stock con `Badge variant="destructive"` si `stock <= LOW_STOCK_THRESHOLD`, y acción "Ajustar" solo si `canAdjust` · `src/modules/products/components/inventory-columns.tsx`
 - [ ] T12 — Tabla con paginación manual, skeleton, vacío y error con reintento · `src/modules/products/components/inventory-table.tsx`
 - [ ] T13 — Toolbar: búsqueda controlada (texto crudo) + `Switch` "Solo stock bajo" · `src/modules/products/components/inventory-toolbar.tsx`
