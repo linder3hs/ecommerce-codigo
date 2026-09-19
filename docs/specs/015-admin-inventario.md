@@ -1,7 +1,7 @@
 ---
 id: 015
 title: Inventario y ajuste rápido de stock
-status: in-review
+status: done
 module: products
 scope: admin
 ---
@@ -28,13 +28,13 @@ No incluye:
 
 ## Criterios de aceptación
 
-- [ ] AC1 — Dado un admin con `products.read` cuando abre `/admin/inventory` entonces ve nombre, SKU, categoría y stock, con los de menor stock primero.
-- [ ] AC2 — Dado el listado cuando activa "solo stock bajo" o escribe en la búsqueda entonces la consulta se rehace en servidor, vuelve a la página 1 y `meta.total` refleja el filtro.
-- [ ] AC3 — Dada una fila cuando confirma un delta `+N` entonces el stock queda en `anterior + N` sin abrir el formulario de producto.
-- [ ] AC4 — Dado un delta que dejaría el stock negativo entonces la respuesta es 400 con el stock actual en el mensaje y nada se escribe (ni producto ni `audit_logs`).
-- [ ] AC5 — Dado un ajuste aplicado entonces existe una fila `audit_logs` con `action: "product.stock_adjusted"`, `entityType: "product"`, `changes.before/after.stock` y `metadata.delta`, sin PII.
-- [ ] AC6 — Dado un admin sin `products.update` entonces no ve el control de ajuste y el `PATCH` directo responde 403.
-- [ ] AC7 — Estados de carga, vacío y error con reintento en la tabla.
+- [x] AC1 — Dado un admin con `products.read` cuando abre `/admin/inventory` entonces ve nombre, SKU, categoría y stock, con los de menor stock primero.
+- [x] AC2 — Dado el listado cuando activa "solo stock bajo" o escribe en la búsqueda entonces la consulta se rehace en servidor, vuelve a la página 1 y `meta.total` refleja el filtro.
+- [x] AC3 — Dada una fila cuando confirma un delta `+N` entonces el stock queda en `anterior + N` sin abrir el formulario de producto.
+- [x] AC4 — Dado un delta que dejaría el stock negativo entonces la respuesta es 400 con el stock actual en el mensaje y nada se escribe (ni producto ni `audit_logs`).
+- [x] AC5 — Dado un ajuste aplicado entonces existe una fila `audit_logs` con `action: "product.stock_adjusted"`, `entityType: "product"`, `changes.before/after.stock` y `metadata.delta`, sin PII.
+- [x] AC6 — Dado un admin sin `products.update` entonces no ve el control de ajuste y el `PATCH` directo responde 403.
+- [x] AC7 — Estados de carga, vacío y error con reintento en la tabla.
 
 ## Datos
 
