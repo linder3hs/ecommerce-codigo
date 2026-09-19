@@ -1,7 +1,7 @@
 ---
 id: 015
 title: Inventario y ajuste rápido de stock
-status: in-progress
+status: in-review
 module: products
 scope: admin
 ---
@@ -90,9 +90,9 @@ Zod:
 - [x] T13 — Toolbar: búsqueda controlada (texto crudo) + `Switch` "Solo stock bajo" · `src/modules/products/components/inventory-toolbar.tsx`
 - [x] T14 — Diálogo de ajuste: input de delta con signo, stock actual y resultante en pantalla, `toast` al confirmar · `src/modules/products/components/adjust-stock-dialog.tsx`
 - [x] T15 — Vista cliente: `useProducts(INVENTORY_DEFAULT_QUERY + filtros)`, `useDebounce` de la búsqueda, reset a página 1 al cambiar filtro o switch, orquesta el diálogo · `src/modules/products/components/inventory-view.tsx`
-- [ ] T16 — Página Server Component con gate `PRODUCTS_READ` (redirect) y prop `canAdjust` desde `PRODUCTS_UPDATE` · `src/app/(admin)/admin/inventory/page.tsx`
-- [ ] T17 — Ítem "Inventario" (icono `PackageSearch`, `requiredPermission: "products.read"` literal) después de Productos · `src/components/shared/admin-sidebar.tsx`
-- [ ] T18 — Etiquetas de auditoría: `product` en `ENTITY_TYPE_OPTIONS`, `product.stock_adjusted` en `ACTION_LABELS`, `stock` y `delta` en `FIELD_LABELS` · `src/modules/audit/constants.ts`
+- [x] T16 — Página Server Component con gate `PRODUCTS_READ` (redirect) y prop `canAdjust` desde `PRODUCTS_UPDATE` · `src/app/(admin)/admin/inventory/page.tsx`
+- [x] T17 — Ítem "Inventario" (icono `PackageSearch`, `requiredPermission: "products.read"` literal) después de Productos · `src/components/shared/admin-sidebar.tsx`
+- [x] T18 — Etiquetas de auditoría: `product` en `ENTITY_TYPE_OPTIONS`, `product.stock_adjusted` en `ACTION_LABELS`, `stock` y `delta` en `FIELD_LABELS` · `src/modules/audit/constants.ts`
 
 Verificación final: `npm run typecheck && npm run lint` (el `build` lo corre el reviewer)
 

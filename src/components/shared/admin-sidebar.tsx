@@ -6,6 +6,7 @@ import {
   LogOut,
   Menu,
   Package,
+  PackageSearch,
   ScrollText,
   ShieldCheck,
   ShoppingCart,
@@ -60,6 +61,14 @@ const NAV_ITEMS: readonly NavItem[] = [
     href: "/admin/products",
     label: "Productos",
     icon: Package,
+    requiredPermission: "products.read",
+  },
+  // Vive junto a Productos porque es otra vista del mismo recurso
+  // (`products.*`), no una sección nueva.
+  {
+    href: "/admin/inventory",
+    label: "Inventario",
+    icon: PackageSearch,
     requiredPermission: "products.read",
   },
   {
