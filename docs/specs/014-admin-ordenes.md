@@ -89,9 +89,9 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T15 — Columnas + `features` de la tabla (cliente, estado con `Badge`, total con `formatCents`, fecha, acción "Ver") · `src/modules/orders/components/admin-orders-columns.tsx`
 - [x] T16 — Tabla con paginación manual, skeleton, vacío y error con reintento · `src/modules/orders/components/admin-orders-table.tsx`
 - [x] T17 — Toolbar: select de estado, `Desde`/`Hasta` y búsqueda de cliente · `src/modules/orders/components/admin-orders-toolbar.tsx`
-- [ ] T18 — Diálogo de confirmación del cambio de estado (`AlertDialog` + `toast`, envía `expectedStatus`) · `src/modules/orders/components/change-order-status-dialog.tsx`
-- [ ] T19 — Diálogo de detalle: líneas, totales y disparador del cambio de estado si `canUpdateStatus` · `src/modules/orders/components/admin-order-detail-dialog.tsx`
-- [ ] T20 — Vista cliente que orquesta filtros, paginación y diálogos · `src/modules/orders/components/admin-orders-view.tsx`
+- [x] T18 — Diálogo de confirmación del cambio de estado (`AlertDialog` + `toast`, envía `expectedStatus`) · `src/modules/orders/components/change-order-status-dialog.tsx`
+- [x] T19 — Diálogo de detalle: líneas, totales y disparador del cambio de estado si `canUpdateStatus` · `src/modules/orders/components/admin-order-detail-dialog.tsx`
+- [x] T20 — Vista cliente que orquesta filtros, paginación y diálogos · `src/modules/orders/components/admin-orders-view.tsx`
 - [ ] T21 — Página Server Component con gate `ORDERS_READ` (redirect) y prop `canUpdateStatus` · `src/app/(admin)/admin/orders/page.tsx`
 - [ ] T22 — Ítem "Órdenes" (icono `ShoppingCart`, `requiredPermission: "orders.read"`) tras Productos · `src/components/shared/admin-sidebar.tsx`
 - [ ] T23 — Etiquetas de auditoría: `order` en `ENTITY_TYPE_LABELS`/`OPTIONS`, `order.status_changed` en `ACTION_LABELS`, `status` en `FIELD_LABELS` · `src/modules/audit/constants.ts`
