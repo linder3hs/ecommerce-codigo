@@ -2,7 +2,7 @@
 //
 // BLOQUEO: doble. (1) El archivo abre con `import "server-only"`, que lanza en
 // el propio import bajo `tsx --test` ("This module cannot be imported from a
-// Client Component module"); verificado con un import real. (2) Los diez
+// Client Component module"); verificado con un import real. (2) Los once
 // métodos son consultas Drizzle contra `getDb()`, resuelto dentro del módulo y
 // sin punto de inyección. Aquí el bloqueo duele más que en otros repositorios
 // porque el criterio público —producto activo Y categoría activa Y no
@@ -20,6 +20,7 @@ import { describe, it } from "node:test";
 
 describe("productRepository.list", () => {
   it.todo("lists live products for the admin panel, paginated, with search, category/status filters and dynamic ordering");
+  it.todo("filters by maxStock inclusively, treating maxStock 0 as a valid filter, and breaks ties by id so paging does not repeat or skip rows");
 });
 
 describe("productRepository.listPublic", () => {
@@ -52,6 +53,10 @@ describe("productRepository.create", () => {
 
 describe("productRepository.update", () => {
   it.todo("updates a live product by id with the same conflict mapping");
+});
+
+describe("productRepository.adjustStock", () => {
+  it.todo("adds the delta atomically with the stock >= -delta guard in the WHERE, and discriminates ok / not_found / insufficient by re-reading the stock in the same transaction");
 });
 
 describe("productRepository.softDelete", () => {

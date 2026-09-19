@@ -21,7 +21,7 @@ import {
 import type { PgColumn } from "drizzle-orm/pg-core";
 
 import { isUniqueViolation, SlugConflictError } from "@/lib/api-error";
-import { getDb } from "@/server/db";
+import { getDb, type Tx } from "@/server/db";
 import { categories } from "@/server/db/schema/category";
 import { products } from "@/server/db/schema/product";
 
@@ -53,6 +53,7 @@ export type ListProductsParams = {
   search?: string;
   isActive?: boolean;
   categoryId?: string;
+  maxStock?: number;
   sortBy: ProductSortField;
   sortDir: "asc" | "desc";
 };
@@ -120,6 +121,14 @@ export type CreateProductData = Pick<
 
 export type UpdateProductData = Partial<CreateProductData>;
 
+// Resultado discriminado en vez de `null`: el handler necesita distinguir "no
+// existe" (404) de "el delta dejaría el stock en negativo" (400), y en el
+// segundo caso informar el stock actual.
+export type AdjustStockResult =
+  | { kind: "ok"; product: ProductRow }
+  | { kind: "not_found" }
+  | { kind: "insufficient"; current: number };
+
 const SORT_COLUMNS: Record<ProductSortField, PgColumn> = {
   name: products.name,
   priceCents: products.priceCents,
@@ -166,6 +175,7 @@ function buildFilters(params: {
   search?: string;
   isActive?: boolean;
   categoryId?: string;
+  maxStock?: number;
 }): SQL | undefined {
   const conditions: SQL[] = [alive()];
 
@@ -188,6 +198,12 @@ function buildFilters(params: {
 
   if (params.categoryId) {
     conditions.push(eq(products.categoryId, params.categoryId));
+  }
+
+  // Contra `undefined` y no contra un valor falsy, igual que `minPriceCents` en
+  // `buildPublicFilters`: `maxStock: 0` —solo agotados— es un filtro válido.
+  if (params.maxStock !== undefined) {
+    conditions.push(lte(products.stock, params.maxStock));
   }
 
   return and(...conditions);
@@ -289,7 +305,10 @@ export const productRepository = {
         .from(products)
         .innerJoin(categories, eq(products.categoryId, categories.id))
         .where(where)
-        .orderBy(direction(SORT_COLUMNS[params.sortBy]))
+        // `id` desempata: ninguna columna ordenable es única (hay muchos stocks
+        // en 0 y muchos precios repetidos) y sin un criterio estable el `OFFSET`
+        // repetiría o se saltaría filas al pasar de página.
+        .orderBy(direction(SORT_COLUMNS[params.sortBy]), asc(products.id))
         .limit(params.pageSize)
         .offset((params.page - 1) * params.pageSize),
       db.select({ value: count() }).from(products).where(where),
@@ -478,6 +497,44 @@ export const productRepository = {
 
       return row ?? null;
     });
+  },
+
+  /**
+   * Suma `delta` al stock vigente. La guarda `stock >= -delta` vive en el WHERE
+   * y no en JavaScript: dos ajustes concurrentes leerían el mismo valor y un
+   * delta negativo podría hacer fallar el `check` de la base. Si no se escribió
+   * nada, la relectura en la misma `tx` dice por qué.
+   *
+   * El `tx` es obligatorio: quien llama abre la transacción para que el
+   * `audit_logs` de este ajuste viva o revierta con él.
+   */
+  async adjustStock(
+    id: string,
+    delta: number,
+    tx: Tx,
+  ): Promise<AdjustStockResult> {
+    const [row] = await tx
+      .update(products)
+      .set({ stock: sql`${products.stock} + ${delta}` })
+      .where(and(eq(products.id, id), alive(), gte(products.stock, -delta)))
+      .returning();
+
+    if (row) {
+      return { kind: "ok", product: row };
+    }
+
+    // `alive()` también aquí: un producto borrado no es un stock insuficiente.
+    const [current] = await tx
+      .select({ stock: products.stock })
+      .from(products)
+      .where(and(eq(products.id, id), alive()))
+      .limit(1);
+
+    if (!current) {
+      return { kind: "not_found" };
+    }
+
+    return { kind: "insufficient", current: current.stock };
   },
 
   async softDelete(id: string): Promise<boolean> {
