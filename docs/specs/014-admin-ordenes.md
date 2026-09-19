@@ -1,7 +1,7 @@
 ---
 id: 014
 title: Gestión de órdenes en el panel admin
-status: in-progress
+status: in-review
 module: orders
 scope: admin
 ---
@@ -92,9 +92,9 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T18 — Diálogo de confirmación del cambio de estado (`AlertDialog` + `toast`, envía `expectedStatus`) · `src/modules/orders/components/change-order-status-dialog.tsx`
 - [x] T19 — Diálogo de detalle: líneas, totales y disparador del cambio de estado si `canUpdateStatus` · `src/modules/orders/components/admin-order-detail-dialog.tsx`
 - [x] T20 — Vista cliente que orquesta filtros, paginación y diálogos · `src/modules/orders/components/admin-orders-view.tsx`
-- [ ] T21 — Página Server Component con gate `ORDERS_READ` (redirect) y prop `canUpdateStatus` · `src/app/(admin)/admin/orders/page.tsx`
-- [ ] T22 — Ítem "Órdenes" (icono `ShoppingCart`, `requiredPermission: "orders.read"`) tras Productos · `src/components/shared/admin-sidebar.tsx`
-- [ ] T23 — Etiquetas de auditoría: `order` en `ENTITY_TYPE_LABELS`/`OPTIONS`, `order.status_changed` en `ACTION_LABELS`, `status` en `FIELD_LABELS` · `src/modules/audit/constants.ts`
+- [x] T21 — Página Server Component con gate `ORDERS_READ` (redirect) y prop `canUpdateStatus` · `src/app/(admin)/admin/orders/page.tsx`
+- [x] T22 — Ítem "Órdenes" (icono `ShoppingCart`, `requiredPermission: "orders.read"`) tras Productos · `src/components/shared/admin-sidebar.tsx`
+- [x] T23 — Etiquetas de auditoría: `order` en `ENTITY_TYPE_LABELS`/`OPTIONS`, `order.status_changed` en `ACTION_LABELS`, `status` en `FIELD_LABELS` · `src/modules/audit/constants.ts`
 
 Verificación final: `npm run typecheck && npm run lint`
 

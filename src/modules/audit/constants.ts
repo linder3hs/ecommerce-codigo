@@ -34,6 +34,7 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
   role: "Rol",
   category: "Categoría",
   product: "Producto",
+  order: "Orden",
 };
 
 export function entityTypeLabel(entityType: string): string {
@@ -46,6 +47,7 @@ const ACTION_LABELS: Record<string, string> = {
   "user.activated": "Usuario activado",
   "user.deactivated": "Usuario desactivado",
   "role.permissions_updated": "Permisos de rol actualizados",
+  "order.status_changed": "Estado de orden cambiado",
 };
 
 export function actionLabel(action: string): string {
@@ -74,6 +76,7 @@ const FIELD_LABELS: Record<string, string> = {
   invitationId: "Invitación",
   previousRoleSlug: "Rol anterior",
   clerkId: "Identificador de Clerk",
+  status: "Estado",
 };
 
 export function fieldLabel(field: string): string {
@@ -84,6 +87,7 @@ export const ENTITY_TYPE_OPTIONS = [
   { value: ALL_FILTER_VALUE, label: "Todas las entidades" },
   { value: "user", label: ENTITY_TYPE_LABELS.user },
   { value: "role", label: ENTITY_TYPE_LABELS.role },
+  { value: "order", label: ENTITY_TYPE_LABELS.order },
 ] as const;
 
 export const ACTION_OPTIONS = [

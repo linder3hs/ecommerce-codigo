@@ -8,6 +8,7 @@ import {
   Package,
   ScrollText,
   ShieldCheck,
+  ShoppingCart,
   Tags,
   Users,
 } from "lucide-react";
@@ -60,6 +61,12 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: "Productos",
     icon: Package,
     requiredPermission: "products.read",
+  },
+  {
+    href: "/admin/orders",
+    label: "Órdenes",
+    icon: ShoppingCart,
+    requiredPermission: "orders.read",
   },
   // El módulo y la ruta se llaman `customers`, pero el recurso de permisos es
   // `users.*` y la etiqueta que ve la persona es "Usuarios".
