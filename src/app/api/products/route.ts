@@ -1,6 +1,10 @@
 import { handleApiError, jsonError, SlugConflictError } from "@/lib/api-error";
 import { PERMISSIONS, requirePermission } from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
+// Solo servidor: el umbral se define una vez en el módulo de dashboard y este
+// handler lo aplica al filtro, para que el cliente mande una bandera y no un
+// número que podría manipular.
+import { LOW_STOCK_THRESHOLD } from "@/modules/dashboard/constants";
 import {
   createProductSchema,
   productQuerySchema,
@@ -31,7 +35,12 @@ export async function GET(request: Request) {
       Object.fromEntries(searchParams.entries()),
     );
 
-    const { rows, total } = await productRepository.list(params);
+    const { lowStockOnly, ...filters } = params;
+
+    const { rows, total } = await productRepository.list({
+      ...filters,
+      maxStock: lowStockOnly ? LOW_STOCK_THRESHOLD : undefined,
+    });
 
     const meta: PageMeta = {
       page: params.page,

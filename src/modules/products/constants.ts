@@ -30,6 +30,17 @@ export const CATEGORY_OPTIONS_QUERY: CategoryQueryInput = {
   sortDir: "asc",
 };
 
+// Lo fijo de la consulta de /admin/inventory: menor stock primero. La página y
+// los filtros los aporta el estado de la vista, que expande este objeto.
+export const INVENTORY_DEFAULT_QUERY: Pick<
+  ProductQueryInput,
+  "pageSize" | "sortBy" | "sortDir"
+> = {
+  pageSize: 20,
+  sortBy: "stock",
+  sortDir: "asc",
+};
+
 // Columnas que el listado sabe ordenar en servidor. El `sortBy` del query
 // schema es la fuente: esto solo restringe qué acepta la UI.
 export const PRODUCT_SORTABLE_FIELDS = [

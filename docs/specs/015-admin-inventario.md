@@ -78,9 +78,9 @@ Zod:
 - [x] T1 — `maxStock?: number` en `ListProductsParams` + `lte(products.stock, maxStock)` en `buildFilters` (guarda `!== undefined`, no falsy: `maxStock: 0` es válido, igual que el comentario ya existente en `minPriceCents`), y `asc(products.id)` como desempate del `orderBy` de `list()` · `src/server/repositories/product.repository.ts`
 - [x] T2 — `adjustStock(id, delta, tx)`: `UPDATE ... SET stock = stock + delta WHERE id AND alive() AND stock >= -delta RETURNING *`; si no hay fila, relee el stock en la misma `tx` y devuelve un resultado discriminado `{ kind: "ok", product } | { kind: "not_found" } | { kind: "insufficient", current }` · `src/server/repositories/product.repository.ts`
 - [x] T3 — `it.todo` de `adjustStock` y del filtro `maxStock`, con la nota de bloqueo `server-only` ya usada en el archivo · `src/server/repositories/product.repository.test.ts`
-- [ ] T4 — `lowStockOnly` en `productQuerySchema` y `adjustStockSchema` + `adjustStockFormSchema` · `src/modules/products/schemas/product.schema.ts`
-- [ ] T5 — Constante `INVENTORY_DEFAULT_QUERY` (`sortBy: "stock"`, `sortDir: "asc"`, `pageSize: 20`) · `src/modules/products/constants.ts`
-- [ ] T6 — Traducir `lowStockOnly` → `maxStock: LOW_STOCK_THRESHOLD` en el `GET` existente · `src/app/api/products/route.ts`
+- [x] T4 — `lowStockOnly` en `productQuerySchema` y `adjustStockSchema` + `adjustStockFormSchema` · `src/modules/products/schemas/product.schema.ts`
+- [x] T5 — Constante `INVENTORY_DEFAULT_QUERY` (`sortBy: "stock"`, `sortDir: "asc"`, `pageSize: 20`) · `src/modules/products/constants.ts`
+- [x] T6 — Traducir `lowStockOnly` → `maxStock: LOW_STOCK_THRESHOLD` en el `GET` existente · `src/app/api/products/route.ts`
 - [ ] T7 — `PATCH` del ajuste: `requirePermission('products.update')`, `adjustStockSchema`, `getDb().transaction` con `adjustStock` + `logAudit`; la tx **devuelve** el resultado y el `switch` va fuera (no hay clase de error 400 en `api-error.ts`): `not_found` → `NotFoundError`, `insufficient` → `jsonError(400, …stock actual N…)` · `src/app/api/products/[id]/stock/route.ts`
 - [ ] T8 — `adjustStock(id, delta)` en el service existente (`PATCH /products/:id/stock`, devuelve `Product`) · `src/modules/products/services/product.service.ts`
 - [ ] T9 — Test del nuevo método del service (ruta y body enviados) · `src/modules/products/services/product.service.test.ts`

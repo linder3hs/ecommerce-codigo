@@ -37,6 +37,15 @@ export const productQuerySchema = z.object({
     .enum(["true", "false"], "El estado debe ser 'true' o 'false'.")
     .transform((value) => value === "true")
     .optional(),
+  // Bandera, no umbral: el cliente no elige el límite. El handler la traduce a
+  // `maxStock: LOW_STOCK_THRESHOLD` para que el umbral viva en un solo sitio.
+  lowStockOnly: z
+    .enum(
+      ["true", "false"],
+      "El filtro de stock bajo debe ser 'true' o 'false'.",
+    )
+    .transform((value) => value === "true")
+    .optional(),
   categoryId: z.uuid("La categoría seleccionada no es válida.").optional(),
   sortBy: z
     .enum(PRODUCT_SORT_FIELDS, "No se puede ordenar por ese campo.")
@@ -145,8 +154,38 @@ export const productFormSchema = createProductSchema
     compareAtPrice: amountInputSchema("El precio de comparación").nullable(),
   });
 
+// Ajuste de inventario por delta con signo: `+50` suma, `-3` resta. El 0 se
+// rechaza porque escribiría un `audit_logs` que no cambia nada, y el tope
+// coincide con el `max` del `stock` de `createProductSchema`.
+const deltaSchema = z
+  .number("El ajuste debe ser un número.")
+  .int("El ajuste no admite decimales: el stock son unidades enteras.")
+  .min(-1_000_000, "El ajuste supera el máximo permitido.")
+  .max(1_000_000, "El ajuste supera el máximo permitido.")
+  .refine((value) => value !== 0, "El ajuste debe ser distinto de 0.");
+
+export const adjustStockSchema = z.object({ delta: deltaSchema });
+
+// El input del formulario llega como texto ("-3", "+50"): se valida la forma
+// con el regex y se delega el rango al mismo `deltaSchema` que usa la API, así
+// el cliente y el handler nunca discrepan en los límites.
+export const adjustStockFormSchema = z.object({
+  delta: z
+    .string("El ajuste es obligatorio.")
+    .trim()
+    .regex(
+      /^[+-]?\d{1,7}$/,
+      "El ajuste debe ser un entero con signo, como 50 o -3.",
+    )
+    .transform((value) => Number(value))
+    .pipe(deltaSchema),
+});
+
 export type ProductQueryInput = z.infer<typeof productQuerySchema>;
 export type CreateProductInput = z.infer<typeof createProductSchema>;
 export type UpdateProductInput = z.infer<typeof updateProductSchema>;
 export type ProductFormInput = z.input<typeof productFormSchema>;
 export type ProductFormOutput = z.output<typeof productFormSchema>;
+export type AdjustStockInput = z.infer<typeof adjustStockSchema>;
+export type AdjustStockFormInput = z.input<typeof adjustStockFormSchema>;
+export type AdjustStockFormOutput = z.output<typeof adjustStockFormSchema>;
