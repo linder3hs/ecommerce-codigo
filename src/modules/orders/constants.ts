@@ -14,6 +14,10 @@ export const PAGE_SIZE_OPTIONS = [20, 50, 100] as const;
 // que "sin filtro" necesita un literal propio.
 export const ALL_FILTER_VALUE = "all";
 
+// Mismo retardo que el resto de los listados del panel (productos, categorías,
+// clientes): la búsqueda se debounce en la vista antes de armar la query.
+export const SEARCH_DEBOUNCE_MS = 400;
+
 /**
  * Raíz propia (`admin-orders`) y no `orders`: el historial del cliente ya vive
  * bajo `["orders"]` y una invalidación del panel no debe tirar su caché.
@@ -44,3 +48,6 @@ export const ORDER_STATUS_OPTIONS = [
     label: ORDER_STATUS_LABELS[status],
   })),
 ] as const;
+
+/** Valor del select de estado: un `OrderStatus` o el centinela "sin filtro". */
+export type OrderStatusFilter = OrderStatus | typeof ALL_FILTER_VALUE;

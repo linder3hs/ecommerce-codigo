@@ -86,9 +86,9 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T12 — Test del service (params y ruta llamada), patrón de `audit-log.service.test.ts` · `src/modules/orders/services/admin-order.service.test.ts`
 - [x] T13 — Hooks de lectura (`useAdminOrders`, `useAdminOrder`) con `keepPreviousData` · `src/modules/orders/hooks/use-admin-orders.ts`
 - [x] T14 — Hook de mutación que invalida `lists()` y `detail(id)` · `src/modules/orders/hooks/use-update-order-status.ts`
-- [ ] T15 — Columnas + `features` de la tabla (cliente, estado con `Badge`, total con `formatCents`, fecha, acción "Ver") · `src/modules/orders/components/admin-orders-columns.tsx`
-- [ ] T16 — Tabla con paginación manual, skeleton, vacío y error con reintento · `src/modules/orders/components/admin-orders-table.tsx`
-- [ ] T17 — Toolbar: select de estado, `Desde`/`Hasta` y búsqueda de cliente · `src/modules/orders/components/admin-orders-toolbar.tsx`
+- [x] T15 — Columnas + `features` de la tabla (cliente, estado con `Badge`, total con `formatCents`, fecha, acción "Ver") · `src/modules/orders/components/admin-orders-columns.tsx`
+- [x] T16 — Tabla con paginación manual, skeleton, vacío y error con reintento · `src/modules/orders/components/admin-orders-table.tsx`
+- [x] T17 — Toolbar: select de estado, `Desde`/`Hasta` y búsqueda de cliente · `src/modules/orders/components/admin-orders-toolbar.tsx`
 - [ ] T18 — Diálogo de confirmación del cambio de estado (`AlertDialog` + `toast`, envía `expectedStatus`) · `src/modules/orders/components/change-order-status-dialog.tsx`
 - [ ] T19 — Diálogo de detalle: líneas, totales y disparador del cambio de estado si `canUpdateStatus` · `src/modules/orders/components/admin-order-detail-dialog.tsx`
 - [ ] T20 — Vista cliente que orquesta filtros, paginación y diálogos · `src/modules/orders/components/admin-orders-view.tsx`
@@ -104,4 +104,5 @@ Verificación final: `npm run typecheck && npm run lint`
 - **Carrera con el webhook de Stripe**: el webhook puede pasar `pending → paid` mientras el admin confirma otro estado. Por eso la guarda va en el WHERE (`expectedStatus`) y no en JavaScript; `null` es 409, no 500.
 - **Módulo**: admin y cliente conviven en `src/modules/orders/` como en `products/`; los archivos nuevos van prefijados `admin-` para no chocar con `purchase-*`.
 - Cuarta copia de etiquetas de estado (`checkout-success-view`, `orders-by-status-chart`, `purchase-status-tag`): son redacciones por contexto; consolidarlas es deuda de limpieza, fuera de alcance.
+- El toolbar (T17) es controlado y emite el texto crudo: el `useDebounce` vive en la vista (T20) con `SEARCH_DEBOUNCE_MS`, como en `products-view`/`customers-view`. Debounciar dentro del toolbar exigiría un `useEffect` que avise al padre y, con `resetToFirstPage` creando un objeto nuevo por llamada, el callback cambiaría de identidad en cada render y el efecto se dispararía en bucle.
 - `audit_logs.changes` solo lleva `{ status }` antes/después: sin email, sin ids de Stripe, sin importes.
