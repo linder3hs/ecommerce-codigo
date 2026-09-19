@@ -1,7 +1,7 @@
 ---
 id: 014
 title: Gestión de órdenes en el panel admin
-status: in-review
+status: done
 module: orders
 scope: admin
 ---
