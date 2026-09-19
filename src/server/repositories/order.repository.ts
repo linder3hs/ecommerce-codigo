@@ -1,26 +1,10 @@
 import "server-only";
 
-import {
-  and,
-  asc,
-  count,
-  desc,
-  eq,
-  gte,
-  ilike,
-  inArray,
-  lt,
-  lte,
-  ne,
-  or,
-  sql,
-  type SQL,
-} from "drizzle-orm";
+import { and, asc, desc, eq, gte, inArray, lt, ne, sql } from "drizzle-orm";
 
 import { getDb, type Db, type Tx } from "@/server/db";
 import { orderItems, orders } from "@/server/db/schema/order";
 import { products } from "@/server/db/schema/product";
-import { users } from "@/server/db/schema/user";
 
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
@@ -66,41 +50,6 @@ export type StockShortage = {
   available: number;
 };
 
-/**
- * Cliente dueño de la orden. El listado y el detalle del panel siempre lo
- * traen: una orden sin saber de quién es no se puede gestionar.
- */
-export type OrderCustomerSummary = {
-  id: string;
-  email: string;
-  firstName: string | null;
-  lastName: string | null;
-};
-
-// `customer` no es nullable: el innerJoin lo garantiza, igual que la FK
-// `user_id` NOT NULL con `onDelete: restrict`.
-export type AdminOrderListRow = OrderRow & {
-  customer: OrderCustomerSummary;
-};
-
-export type AdminOrderWithItemsRow = AdminOrderListRow & {
-  items: OrderItemRow[];
-};
-
-export type ListAdminOrdersParams = {
-  page: number;
-  pageSize: number;
-  status?: OrderStatus;
-  customerSearch?: string;
-  dateFrom?: Date;
-  dateTo?: Date;
-};
-
-export type ListAdminOrdersResult = {
-  rows: AdminOrderListRow[];
-  total: number;
-};
-
 /** Intervalo semiabierto `[fromInstant, toInstant)` ya resuelto a instantes. */
 export type FindManyByUserInRangeParams = {
   userId: string;
@@ -132,45 +81,6 @@ async function loadItems(
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId))
     .orderBy(asc(orderItems.nameSnapshot));
-}
-
-// Rango de fechas cerrado `[dateFrom, dateTo]` contra `created_at` timestamptz,
-// igual que el filtro del historial de auditoría: los extremos llegan como
-// instantes ya resueltos y el intervalo incluye a los dos.
-function buildAdminFilters(params: {
-  status?: OrderStatus;
-  customerSearch?: string;
-  dateFrom?: Date;
-  dateTo?: Date;
-}): SQL | undefined {
-  const conditions: SQL[] = [];
-
-  if (params.status) {
-    conditions.push(eq(orders.status, params.status));
-  }
-
-  if (params.customerSearch) {
-    const pattern = `%${params.customerSearch}%`;
-    const match = or(
-      ilike(users.email, pattern),
-      ilike(users.firstName, pattern),
-      ilike(users.lastName, pattern),
-    );
-
-    if (match) {
-      conditions.push(match);
-    }
-  }
-
-  if (params.dateFrom) {
-    conditions.push(gte(orders.createdAt, params.dateFrom));
-  }
-
-  if (params.dateTo) {
-    conditions.push(lte(orders.createdAt, params.dateTo));
-  }
-
-  return conditions.length > 0 ? and(...conditions) : undefined;
 }
 
 export const orderRepository = {
@@ -338,87 +248,6 @@ export const orderRepository = {
   },
 
   /**
-   * Listado del panel admin: cualquier orden de la tienda, sin filtro por
-   * dueño. El innerJoin a `users` resuelve el cliente de todas las filas en una
-   * sola consulta (sin él sería una por orden) y es lo que permite filtrar por
-   * email o nombre.
-   */
-  async list(
-    params: ListAdminOrdersParams,
-    db: Db | Tx = getDb(),
-  ): Promise<ListAdminOrdersResult> {
-    const where = buildAdminFilters(params);
-
-    const [rows, totalRows] = await Promise.all([
-      db
-        .select({
-          order: orders,
-          customer: {
-            id: users.id,
-            email: users.email,
-            firstName: users.firstName,
-            lastName: users.lastName,
-          },
-        })
-        .from(orders)
-        .innerJoin(users, eq(users.id, orders.userId))
-        .where(where)
-        .orderBy(desc(orders.createdAt))
-        .limit(params.pageSize)
-        .offset((params.page - 1) * params.pageSize),
-      // El mismo innerJoin que la consulta de filas, no por los datos del
-      // cliente —que aquí no se proyectan— sino porque `where` referencia
-      // columnas de `users`: sin el join esas columnas no existen en la
-      // consulta y el filtro no resuelve.
-      db
-        .select({ value: count() })
-        .from(orders)
-        .innerJoin(users, eq(users.id, orders.userId))
-        .where(where),
-    ]);
-
-    return {
-      rows: rows.map((row) => ({ ...row.order, customer: row.customer })),
-      total: totalRows[0]?.value ?? 0,
-    };
-  },
-
-  /**
-   * Detalle para el panel admin: orden, cliente y líneas. Gemela de
-   * `findByIdForUserWithItems` pero sin el `user_id` en el WHERE: aquí el
-   * permiso (`orders.read`) es lo que autoriza, no la propiedad de la orden.
-   */
-  async findByIdWithItemsForAdmin(
-    id: string,
-    db: Db | Tx = getDb(),
-  ): Promise<AdminOrderWithItemsRow | null> {
-    const [row] = await db
-      .select({
-        order: orders,
-        customer: {
-          id: users.id,
-          email: users.email,
-          firstName: users.firstName,
-          lastName: users.lastName,
-        },
-      })
-      .from(orders)
-      .innerJoin(users, eq(users.id, orders.userId))
-      .where(eq(orders.id, id))
-      .limit(1);
-
-    if (!row) {
-      return null;
-    }
-
-    return {
-      ...row.order,
-      customer: row.customer,
-      items: await loadItems(db, row.order.id),
-    };
-  },
-
-  /**
    * Idempotente por la guarda `status <> 'paid'`: Stripe entrega at-least-once
    * y el mismo evento puede llegar dos veces. Devuelve `null` cuando la orden ya
    * estaba pagada, que es la señal para no volver a descontar stock.
@@ -501,32 +330,6 @@ export const orderRepository = {
           eq(orders.status, "pending"),
         ),
       )
-      .returning();
-
-    return row ?? null;
-  },
-
-  /**
-   * Corrección manual del estado desde el panel. `expectedStatus` va en el
-   * WHERE y no en una comparación en JavaScript: entre que el admin lee la
-   * orden y confirma, el webhook de Stripe puede haberla movido, y leer antes
-   * de escribir dejaría esa ventana abierta. `null` significa "el estado ya no
-   * era el esperado y no se escribió nada" —el handler lo traduce a 409—, no un
-   * error.
-   *
-   * El `tx` es obligatorio: quien llama abre la transacción para que el
-   * `audit_logs` de este cambio viva o revierta con él.
-   */
-  async setStatus(
-    id: string,
-    status: OrderStatus,
-    expectedStatus: OrderStatus,
-    tx: Db | Tx,
-  ): Promise<OrderRow | null> {
-    const [row] = await tx
-      .update(orders)
-      .set({ status })
-      .where(and(eq(orders.id, id), eq(orders.status, expectedStatus)))
       .returning();
 
     return row ?? null;

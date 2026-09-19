@@ -2,13 +2,11 @@
 
 import { SignOutButton } from "@clerk/nextjs";
 import {
-  LayoutDashboard,
   LogOut,
   Menu,
   Package,
   ScrollText,
   ShieldCheck,
-  ShoppingCart,
   Tags,
   Users,
 } from "lucide-react";
@@ -45,12 +43,6 @@ type NavItem = {
 // módulo `server-only` y este componente corre en el cliente.
 const NAV_ITEMS: readonly NavItem[] = [
   {
-    href: "/admin/dashboard",
-    label: "Dashboard",
-    icon: LayoutDashboard,
-    requiredPermission: "metrics.read",
-  },
-  {
     href: "/admin/categories",
     label: "Categorías",
     icon: Tags,
@@ -61,12 +53,6 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: "Productos",
     icon: Package,
     requiredPermission: "products.read",
-  },
-  {
-    href: "/admin/orders",
-    label: "Órdenes",
-    icon: ShoppingCart,
-    requiredPermission: "orders.read",
   },
   // El módulo y la ruta se llaman `customers`, pero el recurso de permisos es
   // `users.*` y la etiqueta que ve la persona es "Usuarios".
