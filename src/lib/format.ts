@@ -1,6 +1,6 @@
-// Los precios se persisten en centavos (integer). Estos helpers son el único
-// puente entre esos enteros y el texto que ve o escribe el usuario: nada de
-// aritmética con floats en el camino.
+// Formateo de datos persistidos al texto que ve o escribe el usuario. Los
+// precios se guardan en centavos (integer) y estos helpers son el único puente
+// entre esos enteros y la pantalla: nada de aritmética con floats en el camino.
 
 const CURRENCY_PREFIX = "S/";
 
@@ -55,4 +55,31 @@ export function centsToAmountInput(cents: number): string {
   const fraction = String(absolute % 100).padStart(2, "0");
 
   return `${sign}${(absolute - (absolute % 100)) / 100}.${fraction}`;
+}
+
+/** Las dos columnas de nombre de `users`, ambas nullable en el schema. */
+export type CustomerNameParts = {
+  firstName: string | null;
+  lastName: string | null;
+};
+
+/**
+ * Nombre completo a partir de las partes guardadas. `fallback` es lo que se
+ * devuelve cuando la cuenta no tiene nombre y es obligatorio porque los
+ * consumidores no son intercambiables: el panel muestra "Sin nombre", el
+ * listado de usuarios cae al email (`null`) y el Customer de Stripe deja el
+ * campo ausente (`undefined`) —un recibo que dijera "Sin nombre" sería un dato
+ * inventado—. Sin valor por defecto a propósito: un default se dispararía al
+ * pasar `undefined` explícito y devolvería texto donde se pidió ausencia.
+ */
+export function formatCustomerName<TFallback>(
+  parts: CustomerNameParts,
+  fallback: TFallback,
+): string | TFallback {
+  const name = [parts.firstName, parts.lastName]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  return name.length > 0 ? name : fallback;
 }

@@ -6,6 +6,7 @@ import {
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
+import { formatCustomerName } from "@/lib/format";
 
 import { CustomerRowActions } from "./customer-row-actions";
 import { UserStatusBadge } from "./user-status-badge";
@@ -20,14 +21,8 @@ const dateFormatter = new Intl.DateTimeFormat("es", { dateStyle: "medium" });
 
 const helper = createColumnHelper<typeof customersTableFeatures, UserListItem>();
 
-function fullName(user: UserListItem): string | null {
-  const name = [user.firstName, user.lastName].filter(Boolean).join(" ").trim();
-
-  return name || null;
-}
-
 function initials(user: UserListItem): string {
-  const name = fullName(user);
+  const name = formatCustomerName(user, null);
 
   if (name) {
     return name
@@ -51,7 +46,8 @@ export function createCustomersColumns(capabilities: UserCapabilities) {
       header: "Usuario",
       cell: (info) => {
         const user = info.row.original;
-        const name = fullName(user);
+        // `null` como fallback: sin nombre la fila muestra el email arriba.
+        const name = formatCustomerName(user, null);
 
         return (
           <div className="flex items-center gap-3">
