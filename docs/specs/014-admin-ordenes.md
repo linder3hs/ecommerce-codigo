@@ -79,9 +79,9 @@ Zod en `src/modules/orders/schemas/admin-order.schema.ts`:
 - [x] T5 — Schemas Zod del listado, id y cambio de estado · `src/modules/orders/schemas/admin-order.schema.ts`
 - [x] T6 — Tipos de respuesta (`AdminOrderListItem`, `AdminOrderDetail`, `*Response`) derivados del schema Drizzle con `import type` · `src/modules/orders/types/admin-order.ts`
 - [x] T7 — Constantes del módulo: `adminOrderKeys`, `DEFAULT_PAGE_SIZE`, `PAGE_SIZE_OPTIONS`, `ALL_FILTER_VALUE`, `ORDER_STATUS_LABELS`/`OPTIONS` · `src/modules/orders/constants.ts`
-- [ ] T8 — `GET` del listado: `requirePermission('orders.read')`, parseo de query, `meta` de paginación · `src/app/api/admin/orders/route.ts`
-- [ ] T9 — `GET` del detalle: `orders.read` + `NotFoundError` · `src/app/api/admin/orders/[id]/route.ts`
-- [ ] T10 — `PATCH` del estado: `orders.update_status`, 400 si `status === expectedStatus`, `getDb().transaction` con `setStatus` + `logAudit` (`severity: "warning"`; `ConflictError` si devuelve `null`) · `src/app/api/admin/orders/[id]/status/route.ts`
+- [x] T8 — `GET` del listado: `requirePermission('orders.read')`, parseo de query, `meta` de paginación · `src/app/api/admin/orders/route.ts`
+- [x] T9 — `GET` del detalle: `orders.read` + `NotFoundError` · `src/app/api/admin/orders/[id]/route.ts`
+- [x] T10 — `PATCH` del estado: `orders.update_status`, 400 si `status === expectedStatus`, `getDb().transaction` con `setStatus` + `logAudit` (`severity: "warning"`; `ConflictError` si devuelve `null`) · `src/app/api/admin/orders/[id]/status/route.ts`
 - [ ] T11 — Service axios (`list`, `detail`, `updateStatus`) · `src/modules/orders/services/admin-order.service.ts`
 - [ ] T12 — Test del service (params y ruta llamada), patrón de `audit-log.service.test.ts` · `src/modules/orders/services/admin-order.service.test.ts`
 - [ ] T13 — Hooks de lectura (`useAdminOrders`, `useAdminOrder`) con `keepPreviousData` · `src/modules/orders/hooks/use-admin-orders.ts`
