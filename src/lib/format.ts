@@ -47,6 +47,18 @@ export function formatCents(cents: number): string {
   return `${CURRENCY_PREFIX} ${sign}${whole},${fraction}`;
 }
 
+// Un decimal: el margen porcentual es una lectura de negocio, no un importe, y
+// dos decimales sugerirían una precisión que el redondeo del costo no sostiene.
+const pctFormatter = new Intl.NumberFormat("es-ES", {
+  minimumFractionDigits: 1,
+  maximumFractionDigits: 1,
+});
+
+/** Porcentaje ya multiplicado por 100 → texto: 33.333 → "33,3 %". */
+export function formatPct(value: number): string {
+  return `${pctFormatter.format(value)} %`;
+}
+
 /** Centavos → texto editable en un input: 129990 → "1299.90". */
 export function centsToAmountInput(cents: number): string {
   const sign = cents < 0 ? "-" : "";

@@ -12,6 +12,7 @@ import {
   centsToAmountInput,
   formatCents,
   formatCustomerName,
+  formatPct,
   toCents,
 } from "./format";
 
@@ -203,6 +204,28 @@ describe("formatCents", () => {
   });
 });
 
+describe("formatPct", () => {
+  it("prints one decimal with a comma and a spaced percent sign", () => {
+    assert.equal(formatPct(33.333), "33,3 %");
+  });
+
+  it("pads a whole percentage with a trailing zero", () => {
+    assert.equal(formatPct(25), "25,0 %");
+  });
+
+  it("formats zero as 0,0 %", () => {
+    assert.equal(formatPct(0), "0,0 %");
+  });
+
+  it("keeps the sign of a negative margin", () => {
+    assert.equal(formatPct(-12.34), "-12,3 %");
+  });
+
+  it("rounds to the nearest tenth", () => {
+    assert.equal(formatPct(66.666), "66,7 %");
+  });
+});
+
 describe("centsToAmountInput", () => {
   it("writes the editable amount with a dot separator", () => {
     assert.equal(centsToAmountInput(129990), "1299.90");
@@ -237,7 +260,10 @@ describe("centsToAmountInput", () => {
   });
 
   it("produces text that the amount input pattern accepts", () => {
-    assert.equal(AMOUNT_INPUT_PATTERN.test(centsToAmountInput(999999999)), true);
+    assert.equal(
+      AMOUNT_INPUT_PATTERN.test(centsToAmountInput(999999999)),
+      true,
+    );
   });
 
   it("round-trips through toCents", () => {
@@ -256,7 +282,10 @@ describe("centsToAmountInput", () => {
 describe("formatCustomerName", () => {
   it("joins both parts with a single space", () => {
     assert.equal(
-      formatCustomerName({ firstName: "Ada", lastName: "Lovelace" }, "Sin nombre"),
+      formatCustomerName(
+        { firstName: "Ada", lastName: "Lovelace" },
+        "Sin nombre",
+      ),
       "Ada Lovelace",
     );
   });
@@ -267,7 +296,10 @@ describe("formatCustomerName", () => {
       "Ada",
     );
     assert.equal(
-      formatCustomerName({ firstName: null, lastName: "Lovelace" }, "Sin nombre"),
+      formatCustomerName(
+        { firstName: null, lastName: "Lovelace" },
+        "Sin nombre",
+      ),
       "Lovelace",
     );
   });
@@ -282,7 +314,10 @@ describe("formatCustomerName", () => {
   // Los tres consumidores piden reemplazos distintos: texto en el panel, `null`
   // para caer al email y `undefined` para dejar el campo ausente en Stripe.
   it("returns the fallback as given, including null and undefined", () => {
-    assert.equal(formatCustomerName({ firstName: null, lastName: null }, null), null);
+    assert.equal(
+      formatCustomerName({ firstName: null, lastName: null }, null),
+      null,
+    );
     assert.equal(
       formatCustomerName({ firstName: null, lastName: null }, undefined),
       undefined,

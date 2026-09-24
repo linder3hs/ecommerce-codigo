@@ -8,11 +8,15 @@ import {
   Menu,
   Package,
   PackageSearch,
+  PiggyBank,
+  Receipt,
   ScrollText,
   ShieldCheck,
   ShoppingCart,
   Tags,
+  TrendingUp,
   Users,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -90,6 +94,36 @@ const NAV_ITEMS: readonly NavItem[] = [
     label: "Precio unitario",
     icon: DollarSign,
     requiredPermission: "product_cost.view",
+    section: "Finanzas",
+  },
+  // Resto de Finanzas (017–020). Van consecutivos: `groupBySection` agrupa
+  // tramos seguidos y un ítem raíz en medio partiría la cabecera en dos.
+  {
+    href: "/admin/finanzas/ingresos",
+    label: "Ingresos",
+    icon: TrendingUp,
+    requiredPermission: "revenue.view",
+    section: "Finanzas",
+  },
+  {
+    href: "/admin/finanzas/egresos",
+    label: "Egresos",
+    icon: Wallet,
+    requiredPermission: "expenses.view",
+    section: "Finanzas",
+  },
+  {
+    href: "/admin/finanzas/impuestos",
+    label: "Impuestos",
+    icon: Receipt,
+    requiredPermission: "tax.view",
+    section: "Finanzas",
+  },
+  {
+    href: "/admin/finanzas/ganancias",
+    label: "Ganancias",
+    icon: PiggyBank,
+    requiredPermission: "profit.view",
     section: "Finanzas",
   },
   // El módulo y la ruta se llaman `customers`, pero el recurso de permisos es

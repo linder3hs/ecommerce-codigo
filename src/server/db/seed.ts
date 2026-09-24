@@ -155,6 +155,48 @@ const PERMISSION_SEEDS: PermissionSeed[] = [
     action: "update",
     description: "Editar el costo de los productos.",
   },
+  {
+    code: "revenue.view",
+    resource: "revenue",
+    action: "view",
+    description: "Ver los ingresos del periodo.",
+  },
+  {
+    code: "expenses.view",
+    resource: "expenses",
+    action: "view",
+    description: "Ver los egresos operativos.",
+  },
+  {
+    code: "expenses.create",
+    resource: "expenses",
+    action: "create",
+    description: "Registrar egresos operativos.",
+  },
+  {
+    code: "expenses.update",
+    resource: "expenses",
+    action: "update",
+    description: "Editar egresos operativos.",
+  },
+  {
+    code: "expenses.delete",
+    resource: "expenses",
+    action: "delete",
+    description: "Eliminar egresos operativos.",
+  },
+  {
+    code: "tax.view",
+    resource: "tax",
+    action: "view",
+    description: "Ver el IGV de las ventas del periodo.",
+  },
+  {
+    code: "profit.view",
+    resource: "profit",
+    action: "view",
+    description: "Ver las ganancias (P&L) del periodo.",
+  },
 ];
 
 // `all` evita listas quemadas: super_admin y admin se definen contra lo que

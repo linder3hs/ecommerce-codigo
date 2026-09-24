@@ -4,8 +4,9 @@ import {
   tableFeatures,
 } from "@tanstack/react-table";
 
+import { UnknownValue } from "@/components/shared/unknown-value";
 import { Button } from "@/components/ui/button";
-import { formatCents } from "@/lib/format";
+import { formatCents, formatPct } from "@/lib/format";
 
 import { marginPct } from "../lib/margin";
 
@@ -16,31 +17,10 @@ import type { UnitPriceRow } from "../types/unit-price";
 // y Postgres no puede ordenar por él. No hay orden configurable que exponer.
 export const unitPriceTableFeatures = tableFeatures({ rowPaginationFeature });
 
-// Un decimal: el margen porcentual es una lectura de negocio, no un importe, y
-// dos decimales sugerirían una precisión que el redondeo del costo no sostiene.
-const pctFormatter = new Intl.NumberFormat("es-ES", {
-  minimumFractionDigits: 1,
-  maximumFractionDigits: 1,
-});
-
 const helper = createColumnHelper<
   typeof unitPriceTableFeatures,
   UnitPriceRow
 >();
-
-/**
- * Hueco de un dato que no existe (AC2). El guion es lo que se ve; el texto
- * `sr-only` es lo que se oye, porque un lector de pantalla no puede distinguir
- * "costo desconocido" de "margen sin calcular" leyendo el mismo guion en dos
- * columnas distintas.
- */
-function UnknownValue({ label }: { label: string }) {
-  return (
-    <span className="text-muted-foreground tabular-nums">
-      —<span className="sr-only">{label}</span>
-    </span>
-  );
-}
 
 /**
  * Columnas de precio unitario. Se construyen por vista porque dependen del
@@ -64,7 +44,7 @@ export function createUnitPriceColumns(
     helper.accessor("sku", {
       header: "SKU",
       cell: (info) => (
-        <code className="text-muted-foreground text-xs">{info.getValue()}</code>
+        <code className="text-xs text-muted-foreground">{info.getValue()}</code>
       ),
     }),
     helper.accessor("category", {
@@ -108,7 +88,7 @@ export function createUnitPriceColumns(
           <span
             className={
               margin < 0
-                ? "text-destructive font-medium tabular-nums"
+                ? "font-medium text-destructive tabular-nums"
                 : "font-medium tabular-nums"
             }
           >
@@ -142,7 +122,7 @@ export function createUnitPriceColumns(
               pct < 0 ? "text-destructive tabular-nums" : "tabular-nums"
             }
           >
-            {pctFormatter.format(pct)} %
+            {formatPct(pct)}
           </span>
         );
       },

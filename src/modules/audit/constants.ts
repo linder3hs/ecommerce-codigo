@@ -35,6 +35,7 @@ const ENTITY_TYPE_LABELS: Record<string, string> = {
   category: "Categoría",
   product: "Producto",
   order: "Orden",
+  expense: "Egreso",
 };
 
 export function entityTypeLabel(entityType: string): string {
@@ -50,6 +51,9 @@ const ACTION_LABELS: Record<string, string> = {
   "product.stock_adjusted": "Stock de producto ajustado",
   "product.cost_updated": "Costo de producto actualizado",
   "order.status_changed": "Estado de orden cambiado",
+  "expense.created": "Egreso registrado",
+  "expense.updated": "Egreso actualizado",
+  "expense.deleted": "Egreso eliminado",
 };
 
 export function actionLabel(action: string): string {
@@ -82,6 +86,10 @@ const FIELD_LABELS: Record<string, string> = {
   stock: "Stock",
   delta: "Delta",
   costCents: "Costo (centavos)",
+  category: "Categoría",
+  amountCents: "Monto (centavos)",
+  expenseDate: "Fecha",
+  description: "Descripción",
 };
 
 export function fieldLabel(field: string): string {
@@ -94,6 +102,7 @@ export const ENTITY_TYPE_OPTIONS = [
   { value: "role", label: ENTITY_TYPE_LABELS.role },
   { value: "product", label: ENTITY_TYPE_LABELS.product },
   { value: "order", label: ENTITY_TYPE_LABELS.order },
+  { value: "expense", label: ENTITY_TYPE_LABELS.expense },
 ] as const;
 
 export const ACTION_OPTIONS = [
