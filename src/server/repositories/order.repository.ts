@@ -25,7 +25,16 @@ import { users } from "@/server/db/schema/user";
 import type { InferInsertModel, InferSelectModel } from "drizzle-orm";
 
 export type OrderRow = InferSelectModel<typeof orders>;
-export type OrderItemRow = InferSelectModel<typeof orderItems>;
+
+// `unit_cost_cents` queda fuera de la línea que sale del repositorio: es un dato
+// de costo interno y el historial de compras del cliente lee estas mismas filas.
+// Se excluye del tipo Y de la proyección de las consultas (`ORDER_ITEM_COLUMNS`),
+// porque un `.select()` sin columnas devuelve la fila entera.
+export type OrderItemRow = Omit<
+  InferSelectModel<typeof orderItems>,
+  "unitCostCents"
+>;
+
 export type OrderStatus = OrderRow["status"];
 
 type OrderInsert = InferInsertModel<typeof orders>;
@@ -35,10 +44,28 @@ export type OrderWithItemsRow = OrderRow & {
   items: OrderItemRow[];
 };
 
+// Columnas que se leen de `order_items`. Es una allowlist compartida por las dos
+// consultas de líneas: agregar una columna a la tabla no la publica por
+// descuido, y si se agrega al tipo sin agregarla aquí, TypeScript falla en el
+// retorno de `loadItems` en vez de fallar callado.
+const ORDER_ITEM_COLUMNS = {
+  id: orderItems.id,
+  orderId: orderItems.orderId,
+  productId: orderItems.productId,
+  nameSnapshot: orderItems.nameSnapshot,
+  unitPriceCents: orderItems.unitPriceCents,
+  qty: orderItems.qty,
+};
+
+// `unitCostCents` es obligatorio y no opcional —`Required` sobre la columna
+// nullable del insert—: quien arma una línea tiene que decidir explícitamente
+// entre el costo vigente y `null` (costo desconocido). Opcional dejaría que un
+// camino de pago compilara sin congelar el costo de la venta.
 export type CreateOrderItemData = Pick<
   OrderItemInsert,
   "productId" | "nameSnapshot" | "unitPriceCents" | "qty"
->;
+> &
+  Required<Pick<OrderItemInsert, "unitCostCents">>;
 
 export type CreatePendingOrderData = Pick<
   OrderInsert,
@@ -128,7 +155,7 @@ async function loadItems(
   orderId: string,
 ): Promise<OrderItemRow[]> {
   return db
-    .select()
+    .select(ORDER_ITEM_COLUMNS)
     .from(orderItems)
     .where(eq(orderItems.orderId, orderId))
     .orderBy(asc(orderItems.nameSnapshot));
@@ -194,10 +221,12 @@ export const orderRepository = {
         })
         .returning();
 
+      // El `returning` también proyecta: la fila recién insertada sí tiene el
+      // costo congelado y este resultado viaja hacia los handlers de checkout.
       const items = await tx
         .insert(orderItems)
         .values(data.items.map((item) => ({ ...item, orderId: order.id })))
-        .returning();
+        .returning(ORDER_ITEM_COLUMNS);
 
       return { ...order, items };
     };
@@ -272,7 +301,7 @@ export const orderRepository = {
     }
 
     const items = await db
-      .select()
+      .select(ORDER_ITEM_COLUMNS)
       .from(orderItems)
       .where(
         inArray(

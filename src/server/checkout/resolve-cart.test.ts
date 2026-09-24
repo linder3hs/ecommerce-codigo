@@ -19,8 +19,15 @@
 // lectura. Ese trozo extraído sería puro y testeable de inmediato.
 // La allowlist de imágenes que usa para armar el line item (`isAllowedImageUrl`)
 // sí es pura y ya está cubierta con 26 tests reales en `lib/image-hosts.test.ts`.
+//
+// El congelado del costo (spec 016) cae dentro del mismo bloqueo: `unitCostCents`
+// se copia de la fila que devuelve `findManyActiveByIds`, así que comprobar que
+// se copia —y que un `null` sigue siendo `null` y nunca 0— exige exactamente esa
+// lectura real que no se puede ejercitar aquí.
 import { describe, it } from "node:test";
 
 describe("resolveCartForPayment", () => {
   it.todo("re-reads price, stock and availability of every cart line from the database and builds the Stripe and order line items, throwing ConflictError when something is unavailable");
+  it.todo("freezes the product's current cost into each order item as unitCostCents, so editing the cost afterwards does not change the sold line");
+  it.todo("copies a null cost as null, never as 0: an unknown cost is not a zero cost");
 });

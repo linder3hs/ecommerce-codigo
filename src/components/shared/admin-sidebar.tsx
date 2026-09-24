@@ -2,6 +2,7 @@
 
 import { SignOutButton } from "@clerk/nextjs";
 import {
+  DollarSign,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -39,6 +40,11 @@ type NavItem = {
   // visual, no una barrera: quien fuerce la URL se topa con el gate del layout
   // y con `requirePermission` en el handler.
   requiredPermission?: PermissionCode;
+  // Cabecera del grupo al que pertenece el ítem. Los módulos con varias
+  // pantallas —Finanzas es el primero— las agrupan bajo un mismo título en vez
+  // de dejar entradas sueltas que parecen secciones distintas. Sin `section` el
+  // ítem va al nivel raíz, que es el caso de la mayoría.
+  section?: string;
 };
 
 // `PermissionCode` es una unión cerrada de literales: un código mal escrito no
@@ -77,6 +83,15 @@ const NAV_ITEMS: readonly NavItem[] = [
     icon: ShoppingCart,
     requiredPermission: "orders.read",
   },
+  // Primera pantalla del módulo de Finanzas (016). El permiso es el del costo y
+  // no `products.read`: lo que abre esta sección es ver el margen.
+  {
+    href: "/admin/finanzas/precio-unitario",
+    label: "Precio unitario",
+    icon: DollarSign,
+    requiredPermission: "product_cost.view",
+    section: "Finanzas",
+  },
   // El módulo y la ruta se llaman `customers`, pero el recurso de permisos es
   // `users.*` y la etiqueta que ve la persona es "Usuarios".
   {
@@ -99,6 +114,38 @@ const NAV_ITEMS: readonly NavItem[] = [
   },
 ];
 
+type NavGroup = {
+  // El href del primer ítem: identifica al grupo sin depender del índice y sin
+  // colisionar cuando hay dos tramos sin sección.
+  id: string;
+  section: string | undefined;
+  items: NavItem[];
+};
+
+/**
+ * Parte la lista visible en tramos consecutivos con la misma `section`. El orden
+ * de `NAV_ITEMS` manda: agrupar sin reordenar deja que la cabecera aparezca
+ * donde está el módulo y no al final.
+ *
+ * Se agrupa después de filtrar por permisos, así una sección cuyos ítems no son
+ * visibles no deja una cabecera huérfana.
+ */
+function groupBySection(items: readonly NavItem[]): NavGroup[] {
+  const groups: NavGroup[] = [];
+
+  for (const item of items) {
+    const current = groups.at(-1);
+
+    if (current && current.section === item.section) {
+      current.items.push(item);
+    } else {
+      groups.push({ id: item.href, section: item.section, items: [item] });
+    }
+  }
+
+  return groups;
+}
+
 type AdminNavProps = {
   items: readonly NavItem[];
   pathname: string;
@@ -111,33 +158,42 @@ function AdminNav({ items, pathname, onNavigate }: AdminNavProps) {
   return (
     <nav
       aria-label="Navegación de administración"
-      className="min-h-0 flex-1 overflow-y-auto px-2 pb-4"
+      className="flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-2 pb-4"
     >
-      <ul className="flex flex-col gap-1">
-        {items.map((item) => {
-          const isActive = pathname.startsWith(item.href);
-          const Icon = item.icon;
+      {groupBySection(items).map((group) => (
+        <div key={group.id} className="flex flex-col gap-1">
+          {group.section ? (
+            <p className="px-3 text-xs font-medium tracking-wide text-muted-foreground uppercase">
+              {group.section}
+            </p>
+          ) : null}
+          <ul className="flex flex-col gap-1">
+            {group.items.map((item) => {
+              const isActive = pathname.startsWith(item.href);
+              const Icon = item.icon;
 
-          return (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                onClick={onNavigate}
-                aria-current={isActive ? "page" : undefined}
-                className={cn(
-                  "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
-                  isActive
-                    ? "bg-accent text-accent-foreground font-medium"
-                    : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
-                )}
-              >
-                <Icon className="size-4" aria-hidden />
-                {item.label}
-              </Link>
-            </li>
-          );
-        })}
-      </ul>
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onNavigate}
+                    aria-current={isActive ? "page" : undefined}
+                    className={cn(
+                      "flex items-center gap-2 rounded-md px-3 py-2 text-sm transition-colors",
+                      isActive
+                        ? "bg-accent font-medium text-accent-foreground"
+                        : "text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                    )}
+                  >
+                    <Icon className="size-4" aria-hidden />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </div>
+      ))}
     </nav>
   );
 }
@@ -153,7 +209,7 @@ function AdminSignOut() {
         <Button
           type="button"
           variant="ghost"
-          className="text-muted-foreground hover:text-accent-foreground h-9 w-full justify-start gap-2 px-3 text-sm"
+          className="h-9 w-full justify-start gap-2 px-3 text-sm text-muted-foreground hover:text-accent-foreground"
         >
           <LogOut className="size-4" aria-hidden />
           Cerrar sesión
@@ -179,7 +235,7 @@ export function AdminSidebar({ permissions }: AdminSidebarProps) {
 
   return (
     <>
-      <header className="bg-card sticky top-0 z-30 flex items-center gap-2 border-b px-3 py-2 md:hidden">
+      <header className="sticky top-0 z-30 flex items-center gap-2 border-b bg-card px-3 py-2 md:hidden">
         <Sheet open={mobileOpen} onOpenChange={setMobileOpen}>
           <SheetTrigger asChild>
             <Button variant="ghost" size="icon" aria-label="Abrir navegación">
@@ -188,7 +244,7 @@ export function AdminSidebar({ permissions }: AdminSidebarProps) {
           </SheetTrigger>
           <SheetContent side="left" className="w-72 gap-0 p-0 sm:max-w-72">
             <SheetHeader className="border-b">
-              <SheetTitle className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+              <SheetTitle className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
                 Administración
               </SheetTitle>
               <SheetDescription className="sr-only">
@@ -206,9 +262,9 @@ export function AdminSidebar({ permissions }: AdminSidebarProps) {
         <span className="text-sm font-medium">Administración</span>
       </header>
 
-      <aside className="bg-card sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r md:flex">
+      <aside className="sticky top-0 hidden h-screen w-60 shrink-0 flex-col border-r bg-card md:flex">
         <div className="p-4">
-          <p className="text-muted-foreground text-xs font-medium tracking-wide uppercase">
+          <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             Administración
           </p>
         </div>

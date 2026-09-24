@@ -9,13 +9,19 @@ type ProductRow = InferSelectModel<typeof products>;
 
 // El conjunto de campos se deriva del schema Drizzle, pero al viajar por HTTP
 // los timestamptz llegan al cliente como strings ISO, no como Date.
+//
+// `costCents` es opcional porque la API lo omite —no lo pone en `null`— cuando
+// el actor no tiene `product_cost.view`: `null` significa "costo desconocido" y
+// afirmarlo sería mentir sobre un dato que sí existe. El opcional obliga a que
+// quien lo consuma distinga los dos casos.
 export type Product = Omit<
   ProductRow,
-  "createdAt" | "updatedAt" | "deletedAt"
+  "createdAt" | "updatedAt" | "deletedAt" | "costCents"
 > & {
   createdAt: string;
   updatedAt: string;
   deletedAt: string | null;
+  costCents?: number | null;
 };
 
 // La categoría llega resuelta desde el join del repositorio: el listado nunca

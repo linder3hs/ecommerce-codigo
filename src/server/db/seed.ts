@@ -143,6 +143,18 @@ const PERMISSION_SEEDS: PermissionSeed[] = [
     action: "read",
     description: "Ver las métricas del panel.",
   },
+  {
+    code: "product_cost.view",
+    resource: "product_cost",
+    action: "view",
+    description: "Ver el costo y el margen de los productos.",
+  },
+  {
+    code: "product_cost.update",
+    resource: "product_cost",
+    action: "update",
+    description: "Editar el costo de los productos.",
+  },
 ];
 
 // `all` evita listas quemadas: super_admin y admin se definen contra lo que

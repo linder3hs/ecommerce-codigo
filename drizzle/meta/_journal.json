@@ -36,6 +36,13 @@
       "when": 1789008126438,
       "tag": "0004_plain_liz_osborn",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1790043931938,
+      "tag": "0005_fast_black_tarantula",
+      "breakpoints": true
     }
   ]
 }

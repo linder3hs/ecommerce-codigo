@@ -57,12 +57,13 @@ function toStock(value: unknown): number {
 
 // Los precios se capturan en soles y el schema los convierte a centavos.
 function toCreateInput(values: ProductFormOutput): CreateProductInput {
-  const { price, compareAtPrice, ...rest } = values;
+  const { price, compareAtPrice, cost, ...rest } = values;
 
   return {
     ...rest,
     priceCents: price,
     compareAtPriceCents: compareAtPrice,
+    costCents: cost,
   };
 }
 
@@ -71,6 +72,13 @@ type ProductFormProps = {
   submitLabel: string;
   isPending: boolean;
   serverError: string | null;
+  // Sin `product_cost.update` el campo Costo no se dibuja (AC6). Es solo
+  // presentación: la barrera real es el 403 del `POST /api/products` ante un
+  // `costCents` numérico.
+  canEditCost: boolean;
+  // En edición el costo se muestra pero no se toca: la única vía que lo cambia
+  // es el `PATCH` auditado de Finanzas.
+  isEdit: boolean;
   onSubmit: (values: CreateProductInput) => void;
   onCancel: () => void;
 };
@@ -80,6 +88,8 @@ export function ProductForm({
   submitLabel,
   isPending,
   serverError,
+  canEditCost,
+  isEdit,
   onSubmit,
   onCancel,
 }: ProductFormProps) {
@@ -222,6 +232,30 @@ export function ProductForm({
             />
             <FieldError errors={[errors.compareAtPrice]} />
           </Field>
+
+          {canEditCost ? (
+            <Field data-invalid={Boolean(errors.cost)}>
+              <FieldLabel htmlFor="product-cost">Costo (S/)</FieldLabel>
+              {/* `disabled` en el elemento y no en `register`: la opción del
+                  register haría que el valor llegue como `undefined` y
+                  `productFormSchema.cost` es nullable, no opcional. */}
+              <Input
+                id="product-cost"
+                inputMode="decimal"
+                autoComplete="off"
+                placeholder="Opcional"
+                disabled={isEdit}
+                aria-invalid={Boolean(errors.cost)}
+                {...form.register("cost", { setValueAs: toNullable })}
+              />
+              <FieldDescription>
+                {isEdit
+                  ? "Se edita en Finanzas › Precio unitario, donde queda auditado."
+                  : "Vacío significa costo desconocido, no costo cero."}
+              </FieldDescription>
+              <FieldError errors={[errors.cost]} />
+            </Field>
+          ) : null}
 
           <Field data-invalid={Boolean(errors.stock)}>
             <FieldLabel htmlFor="product-stock">Stock</FieldLabel>

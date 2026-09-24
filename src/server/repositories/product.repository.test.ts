@@ -16,6 +16,13 @@
 // escalación. El formato de precios y el catálogo del lado cliente
 // (`lib/format.ts`, `storefront/lib/catalog.ts`) sí son puros y ya están
 // cubiertos con tests reales.
+//
+// `updateCost` (spec 016) es el caso más extremo del bloqueo: lo que hay que
+// comprobar es el `SELECT ... FOR UPDATE` que evita que dos ediciones
+// concurrentes registren un costo anterior que nunca existió, y un lock solo se
+// observa con dos transacciones reales contra Postgres. Lo que sí es puro de esa
+// feature —el margen y la redacción del costo— está cubierto con tests reales en
+// `modules/finance/lib/{margin,cost-redaction}.test.ts`.
 import { describe, it } from "node:test";
 
 describe("productRepository.list", () => {
@@ -57,6 +64,11 @@ describe("productRepository.update", () => {
 
 describe("productRepository.adjustStock", () => {
   it.todo("adds the delta atomically with the stock >= -delta guard in the WHERE, and discriminates ok / not_found / insufficient by re-reading the stock in the same transaction");
+});
+
+describe("productRepository.updateCost", () => {
+  it.todo("locks the row with SELECT ... FOR UPDATE before writing, so the audited `before` cost is the one that really preceded the change");
+  it.todo("discriminates ok / not_found / unchanged, treating null → null as unchanged so no audit row is written for a no-op");
 });
 
 describe("productRepository.softDelete", () => {

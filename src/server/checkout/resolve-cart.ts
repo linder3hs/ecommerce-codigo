@@ -92,6 +92,11 @@ export async function resolveCartForPayment(
       productId: product.id,
       nameSnapshot: product.name,
       unitPriceCents: product.priceCents,
+      // Snapshot del costo, igual que el del precio: el margen de esta venta se
+      // calcula con lo que costaba hoy, no con lo que cueste cuando alguien
+      // consulte el reporte. `null` se copia tal cual —costo desconocido— y
+      // nunca se sustituye por 0.
+      unitCostCents: product.costCents,
       qty: item.qty,
     });
     // Aritmética entera de punta a punta: los importes son centavos.
