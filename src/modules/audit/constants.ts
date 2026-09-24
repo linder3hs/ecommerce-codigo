@@ -48,6 +48,7 @@ const ACTION_LABELS: Record<string, string> = {
   "user.deactivated": "Usuario desactivado",
   "role.permissions_updated": "Permisos de rol actualizados",
   "product.stock_adjusted": "Stock de producto ajustado",
+  "product.cost_updated": "Costo de producto actualizado",
   "order.status_changed": "Estado de orden cambiado",
 };
 
@@ -80,6 +81,7 @@ const FIELD_LABELS: Record<string, string> = {
   status: "Estado",
   stock: "Stock",
   delta: "Delta",
+  costCents: "Costo (centavos)",
 };
 
 export function fieldLabel(field: string): string {

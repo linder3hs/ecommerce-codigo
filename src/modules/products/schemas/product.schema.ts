@@ -55,7 +55,9 @@ export const productQuerySchema = z.object({
     .default("desc"),
 });
 
-const centsSchema = (label: string) =>
+// Exportada: el schema de costo de Finanzas (016) valida con los mismos límites
+// que el precio. Dos definiciones del rango de un importe serían dos verdades.
+export const centsSchema = (label: string) =>
   z
     .number(`${label} debe ser un número.`)
     .int(`${label} no admite decimales: se expresa en centavos.`)
@@ -97,6 +99,10 @@ export const createProductSchema = z.object({
     .nullish(),
   priceCents: centsSchema("El precio"),
   compareAtPriceCents: centsSchema("El precio de comparación").nullish(),
+  // Costo inicial opcional. Ausente o `null` es "costo desconocido", nunca 0.
+  // Quién puede mandarlo lo decide el handler: sin `product_cost.update` un
+  // `costCents` numérico es 403.
+  costCents: centsSchema("El costo").nullish(),
   stock: z
     .number("El stock debe ser un número.")
     .int("El stock debe ser un número entero.")
@@ -114,8 +120,13 @@ export const createProductSchema = z.object({
 
 // `.partial()` no elimina el `.default(true)` de `isActive`: sin el `.omit()`
 // previo, un PATCH parcial reactivaría en silencio un producto despublicado.
+//
+// `costCents` se omite y no vuelve: el costo solo cambia por el `PATCH` auditado
+// de Finanzas, que registra el valor anterior. Admitirlo aquí abriría una
+// segunda vía sin auditoría, y el gate de este handler es `products.update`, no
+// `product_cost.update`.
 export const updateProductSchema = createProductSchema
-  .omit({ isActive: true })
+  .omit({ isActive: true, costCents: true })
   .partial()
   .extend({
     isActive: z.boolean("El estado debe ser verdadero o falso.").optional(),
@@ -124,8 +135,9 @@ export const updateProductSchema = createProductSchema
 export const productIdSchema = z.uuid("El identificador no es válido.");
 
 // El formulario captura los precios en soles ("1299,90") y los convierte a
-// centavos aquí mismo, para que la API siga recibiendo solo enteros.
-const amountInputSchema = (label: string) =>
+// centavos aquí mismo, para que la API siga recibiendo solo enteros. Exportada
+// por el formulario de costo de Finanzas (016), que captura el monto igual.
+export const amountInputSchema = (label: string) =>
   z
     .string(`${label} es obligatorio.`)
     .trim()
@@ -146,12 +158,15 @@ const amountInputSchema = (label: string) =>
     });
 
 export const productFormSchema = createProductSchema
-  .omit({ priceCents: true, compareAtPriceCents: true })
+  .omit({ priceCents: true, compareAtPriceCents: true, costCents: true })
   .extend({
     price: amountInputSchema("El precio"),
     // El campo vacío llega como null desde el `setValueAs` del formulario, no
     // como "": así el opcional no compite con el regex del monto.
     compareAtPrice: amountInputSchema("El precio de comparación").nullable(),
+    // Vacío → `null` (costo desconocido), con el mismo criterio que el precio de
+    // comparación. El campo solo se muestra a quien tenga `product_cost.update`.
+    cost: amountInputSchema("El costo").nullable(),
   });
 
 // Ajuste de inventario por delta con signo: `+50` suma, `-3` resta. El 0 se

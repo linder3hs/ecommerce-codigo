@@ -80,6 +80,13 @@ export type PublicProductRow = Pick<
   category: ProductCategoryRow;
 };
 
+// Lo que el checkout necesita leer de un producto: la proyección pública más el
+// costo, que se congela en `order_items.unit_cost_cents` al comprar. Va aparte y
+// NO se agrega a `PublicProductRow`: esa proyección es la que viaja al
+// storefront y el costo no sale nunca de la trastienda.
+export type CheckoutProductRow = PublicProductRow &
+  Pick<ProductRow, "costCents">;
+
 // Se separan los campos que son columna de los que no: `discount` es una
 // expresión calculada y no cabe en `PUBLIC_SORT_COLUMNS`.
 export type PublicProductSortColumn = "name" | "priceCents" | "createdAt";
@@ -113,13 +120,17 @@ export type CreateProductData = Pick<
       ProductInsert,
       | "description"
       | "compareAtPriceCents"
+      | "costCents"
       | "stock"
       | "imageUrl"
       | "isActive"
     >
   >;
 
-export type UpdateProductData = Partial<CreateProductData>;
+// El costo se puede fijar al crear, pero después solo se cambia por la vía
+// auditada (`updateCost`): omitirlo del tipo del `update` genérico hace que el
+// corte lo sostenga el compilador y no solo el `omit` del schema Zod.
+export type UpdateProductData = Partial<Omit<CreateProductData, "costCents">>;
 
 // Resultado discriminado en vez de `null`: el handler necesita distinguir "no
 // existe" (404) de "el delta dejaría el stock en negativo" (400), y en el
@@ -128,6 +139,15 @@ export type AdjustStockResult =
   | { kind: "ok"; product: ProductRow }
   | { kind: "not_found" }
   | { kind: "insufficient"; current: number };
+
+// Mismo patrón que `AdjustStockResult`: el handler necesita distinguir "no
+// existe" (404) de "el costo ya era ese" (400 sin auditoría, porque no hubo
+// cambio que registrar). `before`/`after` son la fila completa para que la
+// respuesta y el log salgan de lo que de verdad se escribió.
+export type UpdateCostResult =
+  | { kind: "ok"; before: ProductRow; after: ProductRow }
+  | { kind: "not_found" }
+  | { kind: "unchanged" };
 
 const SORT_COLUMNS: Record<ProductSortField, PgColumn> = {
   name: products.name,
@@ -398,8 +418,12 @@ export const productRepository = {
    * —o cuya categoría lo esté— no aparece y el checkout lo trata como
    * inexistente. Devuelve solo las filas encontradas: quien llama compara
    * contra los ids pedidos para saber cuáles faltan.
+   *
+   * Trae `costCents` además de la proyección pública porque cada línea de la
+   * orden congela el costo vigente en el instante de la compra. Quien llama es
+   * el checkout, en servidor: esta fila no se serializa hacia el navegador.
    */
-  async findManyActiveByIds(ids: string[]): Promise<PublicProductRow[]> {
+  async findManyActiveByIds(ids: string[]): Promise<CheckoutProductRow[]> {
     if (ids.length === 0) {
       return [];
     }
@@ -416,6 +440,7 @@ export const productRepository = {
         compareAtPriceCents: products.compareAtPriceCents,
         stock: products.stock,
         imageUrl: products.imageUrl,
+        costCents: products.costCents,
         category: {
           id: categories.id,
           name: categories.name,
@@ -535,6 +560,47 @@ export const productRepository = {
     }
 
     return { kind: "insufficient", current: current.stock };
+  },
+
+  /**
+   * Fija el costo del producto (o lo devuelve a `null`, costo desconocido)
+   * dentro de la transacción de quien llama, que es la misma donde se escribe el
+   * `audit_logs` de este cambio.
+   *
+   * El `SELECT ... FOR UPDATE` no es decorativo: el log guarda el costo anterior
+   * y, sin bloquear la fila, dos ediciones concurrentes leerían el mismo
+   * `before` y una de las dos registraría un valor previo que nunca existió. El
+   * lock se libera al cerrar la transacción.
+   */
+  async updateCost(
+    id: string,
+    costCents: number | null,
+    tx: Tx,
+  ): Promise<UpdateCostResult> {
+    const [before] = await tx
+      .select()
+      .from(products)
+      .where(and(eq(products.id, id), alive()))
+      .limit(1)
+      .for("update");
+
+    if (!before) {
+      return { kind: "not_found" };
+    }
+
+    // `null === null` incluido: reenviar "costo desconocido" sobre un producto
+    // que ya lo estaba tampoco es un cambio que auditar.
+    if (before.costCents === costCents) {
+      return { kind: "unchanged" };
+    }
+
+    const [after] = await tx
+      .update(products)
+      .set({ costCents })
+      .where(and(eq(products.id, id), alive()))
+      .returning();
+
+    return { kind: "ok", before, after };
   },
 
   async softDelete(id: string): Promise<boolean> {

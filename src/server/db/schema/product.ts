@@ -24,6 +24,10 @@ export const products = pgTable(
     description: text("description"),
     priceCents: integer("price_cents").notNull(),
     compareAtPriceCents: integer("compare_at_price_cents"),
+    // Costo de adquisición, nullable y SIN `default 0`: costo desconocido no es
+    // costo cero. Un 0 por defecto haría que el margen de todo el catálogo
+    // fuera el 100 % del precio desde el día de la migración.
+    costCents: integer("cost_cents"),
     stock: integer("stock").notNull().default(0),
     // RESTRICT: una categoría con productos vivos no se borra por accidente.
     // El borrado de categorías es lógico (deleted_at), así que la FK solo
@@ -57,5 +61,9 @@ export const products = pgTable(
       sql`${table.compareAtPriceCents} is null or ${table.compareAtPriceCents} >= 0`,
     ),
     check("products_stock_check", sql`${table.stock} >= 0`),
+    check(
+      "products_cost_cents_check",
+      sql`${table.costCents} is null or ${table.costCents} >= 0`,
+    ),
   ],
 );

@@ -4,15 +4,8 @@ import {
   useTable,
   type OnChangeFn,
   type PaginationState,
-  type SortingState,
 } from "@tanstack/react-table";
-import {
-  ArrowDown,
-  ArrowUp,
-  ChevronsUpDown,
-  PackageOpen,
-  TriangleAlert,
-} from "lucide-react";
+import { PackageOpen, TriangleAlert } from "lucide-react";
 import { useMemo } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -32,67 +25,62 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-
-import { PAGE_SIZE_OPTIONS } from "../constants";
-import type { ProductListItem } from "../types/product";
+import { PAGE_SIZE_OPTIONS } from "@/modules/products/constants";
 
 import {
-  createProductsColumns,
-  productsTableFeatures,
-} from "./products-columns";
+  createUnitPriceColumns,
+  unitPriceTableFeatures,
+} from "./unit-price-columns";
 
-const EMPTY_PRODUCTS: ProductListItem[] = [];
+import type { UnitPriceRow } from "../types/unit-price";
 
-type ProductsTableProps = {
-  data: ProductListItem[] | undefined;
+const EMPTY_ROWS: UnitPriceRow[] = [];
+
+type UnitPriceTableProps = {
+  data: UnitPriceRow[] | undefined;
   rowCount: number;
   pagination: PaginationState;
   onPaginationChange: OnChangeFn<PaginationState>;
-  sorting: SortingState;
-  onSortingChange: OnChangeFn<SortingState>;
-  // Solo viaja hasta el formulario de edición que abre cada fila.
   canEditCost: boolean;
+  onEditCost: (product: UnitPriceRow) => void;
   isLoading: boolean;
   isError: boolean;
   errorMessage: string | null;
   onRetry: () => void;
 };
 
-export function ProductsTable({
+export function UnitPriceTable({
   data,
   rowCount,
   pagination,
   onPaginationChange,
-  sorting,
-  onSortingChange,
   canEditCost,
+  onEditCost,
   isLoading,
   isError,
   errorMessage,
   onRetry,
-}: ProductsTableProps) {
+}: UnitPriceTableProps) {
   const columns = useMemo(
-    () => createProductsColumns(canEditCost),
-    [canEditCost],
+    () => createUnitPriceColumns(canEditCost, onEditCost),
+    [canEditCost, onEditCost],
   );
 
   const table = useTable({
-    features: productsTableFeatures,
+    features: unitPriceTableFeatures,
     columns,
-    data: data ?? EMPTY_PRODUCTS,
+    data: data ?? EMPTY_ROWS,
     rowCount,
+    // La página la resuelve el servidor: la tabla solo refleja `pagination` y
+    // avisa al padre, que es quien rehace la query.
     manualPagination: true,
-    manualSorting: true,
-    // El servidor siempre ordena por alguna columna: sin esto el tercer clic
-    // borra el indicador visual pero el orden real se mantiene.
-    enableSortingRemoval: false,
-    state: { pagination, sorting },
+    state: { pagination },
     onPaginationChange,
-    onSortingChange,
     getRowId: (row) => row.id,
   });
 
   const rows = table.getRowModel().rows;
+  // Varía con `canEditCost`: la columna de acciones no siempre existe.
   const columnCount = columns.length;
   const pageCount = table.getPageCount();
 
@@ -101,7 +89,7 @@ export function ProductsTable({
       <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed p-10 text-center">
         <TriangleAlert className="text-destructive size-6" aria-hidden />
         <div>
-          <p className="font-medium">No se pudieron cargar los productos.</p>
+          <p className="font-medium">No se pudo cargar el precio unitario.</p>
           <p className="text-muted-foreground text-sm">
             {errorMessage ?? "Ocurrió un error inesperado."}
           </p>
@@ -120,51 +108,15 @@ export function ProductsTable({
           <TableHeader>
             {table.getHeaderGroups().map((group) => (
               <TableRow key={group.id}>
-                {group.headers.map((header) => {
-                  if (header.isPlaceholder) {
-                    return <TableHead key={header.id} />;
-                  }
-
-                  const canSort = header.column.getCanSort();
-                  const sorted = header.column.getIsSorted();
-
-                  return (
-                    <TableHead
-                      key={header.id}
-                      aria-sort={
-                        canSort
-                          ? sorted === "asc"
-                            ? "ascending"
-                            : sorted === "desc"
-                              ? "descending"
-                              : "none"
-                          : undefined
-                      }
-                    >
-                      {canSort ? (
-                        <button
-                          type="button"
-                          onClick={header.column.getToggleSortingHandler()}
-                          className="hover:text-foreground flex items-center gap-1"
-                        >
-                          <table.FlexRender header={header} />
-                          {sorted === "asc" ? (
-                            <ArrowUp className="size-3.5" aria-hidden />
-                          ) : sorted === "desc" ? (
-                            <ArrowDown className="size-3.5" aria-hidden />
-                          ) : (
-                            <ChevronsUpDown
-                              className="size-3.5 opacity-50"
-                              aria-hidden
-                            />
-                          )}
-                        </button>
-                      ) : (
-                        <table.FlexRender header={header} />
-                      )}
+                {group.headers.map((header) =>
+                  header.isPlaceholder ? (
+                    <TableHead key={header.id} />
+                  ) : (
+                    <TableHead key={header.id}>
+                      <table.FlexRender header={header} />
                     </TableHead>
-                  );
-                })}
+                  ),
+                )}
               </TableRow>
             ))}
           </TableHeader>
@@ -185,9 +137,7 @@ export function ProductsTable({
                   <div className="text-muted-foreground flex flex-col items-center gap-2 text-center">
                     <PackageOpen className="size-6" aria-hidden />
                     <p className="font-medium">No hay productos que mostrar.</p>
-                    <p className="text-sm">
-                      Ajusta los filtros o crea un producto nuevo.
-                    </p>
+                    <p className="text-sm">Ajusta la búsqueda.</p>
                   </div>
                 </TableCell>
               </TableRow>
@@ -208,7 +158,9 @@ export function ProductsTable({
 
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-muted-foreground text-sm">Filas por página</span>
+          <span className="text-muted-foreground text-sm">
+            Filas por página
+          </span>
           <Select
             value={String(pagination.pageSize)}
             onValueChange={(value) => table.setPageSize(Number(value))}

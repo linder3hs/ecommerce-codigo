@@ -16,7 +16,17 @@ import type { Product } from "../types/product";
 import { DeleteProductDialog } from "./delete-product-dialog";
 import { ProductFormDialog } from "./product-form-dialog";
 
-export function ProductRowActions({ product }: { product: Product }) {
+type ProductRowActionsProps = {
+  product: Product;
+  // Solo se reenvía al formulario de edición, que decide si dibuja el campo
+  // Costo. Las acciones de la fila no dependen del permiso del costo.
+  canEditCost: boolean;
+};
+
+export function ProductRowActions({
+  product,
+  canEditCost,
+}: ProductRowActionsProps) {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
 
@@ -47,7 +57,12 @@ export function ProductRowActions({ product }: { product: Product }) {
       </DropdownMenu>
 
       {isEditOpen ? (
-        <ProductFormDialog open onOpenChange={setIsEditOpen} product={product} />
+        <ProductFormDialog
+          open
+          onOpenChange={setIsEditOpen}
+          product={product}
+          canEditCost={canEditCost}
+        />
       ) : null}
       {isDeleteOpen ? (
         <DeleteProductDialog

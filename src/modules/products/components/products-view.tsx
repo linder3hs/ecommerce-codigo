@@ -36,7 +36,14 @@ function toIsActive(status: ProductStatusFilter): boolean | undefined {
   return status === "all" ? undefined : status === "true";
 }
 
-export function ProductsView() {
+export function ProductsView({
+  canEditCost,
+}: {
+  // Lo resuelve el Server Component con los permisos efectivos y baja hasta el
+  // formulario, que es quien dibuja o no el campo Costo (AC6). La barrera real
+  // es el 403 del handler ante un `costCents` numérico.
+  canEditCost: boolean;
+}) {
   const [search, setSearch] = useState("");
   const [status, setStatus] = useState<ProductStatusFilter>("all");
   const [categoryId, setCategoryId] = useState<string>(ALL_CATEGORIES);
@@ -105,13 +112,18 @@ export function ProductsView() {
         onPaginationChange={setPagination}
         sorting={sorting}
         onSortingChange={handleSortingChange}
+        canEditCost={canEditCost}
         isLoading={products.isPending}
         isError={products.isError}
         errorMessage={products.error?.message ?? null}
         onRetry={() => void products.refetch()}
       />
 
-      <ProductFormDialog open={isCreateOpen} onOpenChange={setIsCreateOpen} />
+      <ProductFormDialog
+        open={isCreateOpen}
+        onOpenChange={setIsCreateOpen}
+        canEditCost={canEditCost}
+      />
     </div>
   );
 }

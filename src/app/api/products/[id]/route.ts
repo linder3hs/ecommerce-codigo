@@ -4,8 +4,13 @@ import {
   NotFoundError,
   SlugConflictError,
 } from "@/lib/api-error";
-import { PERMISSIONS, requirePermission } from "@/lib/permissions";
+import {
+  hasPermission,
+  PERMISSIONS,
+  requirePermission,
+} from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
+import { redactCost } from "@/modules/finance/lib/cost-redaction";
 import {
   productIdSchema,
   updateProductSchema,
@@ -26,7 +31,7 @@ export async function GET(
   ctx: RouteContext<"/api/products/[id]">,
 ) {
   try {
-    await requirePermission(PERMISSIONS.PRODUCTS_READ);
+    const actorPermissions = await requirePermission(PERMISSIONS.PRODUCTS_READ);
 
     const id = productIdSchema.parse((await ctx.params).id);
     const product = await productRepository.findById(id);
@@ -35,7 +40,12 @@ export async function GET(
       throw new NotFoundError(NOT_FOUND_MESSAGE);
     }
 
-    return Response.json(product);
+    return Response.json(
+      redactCost(
+        product,
+        hasPermission(actorPermissions, PERMISSIONS.PRODUCT_COST_VIEW),
+      ),
+    );
   } catch (error: unknown) {
     return handleApiError(error);
   }
@@ -54,9 +64,13 @@ export async function PATCH(
   }
 
   try {
-    await requirePermission(PERMISSIONS.PRODUCTS_UPDATE);
+    const actorPermissions = await requirePermission(
+      PERMISSIONS.PRODUCTS_UPDATE,
+    );
 
     const id = productIdSchema.parse((await ctx.params).id);
+    // `updateProductSchema` no admite `costCents`: el costo solo cambia por el
+    // `PATCH` auditado de Finanzas. Un `costCents` en este body se descarta.
     const input = updateProductSchema.parse(body);
 
     const current = await productRepository.findById(id);
@@ -125,7 +139,12 @@ export async function PATCH(
       throw new NotFoundError(NOT_FOUND_MESSAGE);
     }
 
-    return Response.json(product);
+    return Response.json(
+      redactCost(
+        product,
+        hasPermission(actorPermissions, PERMISSIONS.PRODUCT_COST_VIEW),
+      ),
+    );
   } catch (error: unknown) {
     return handleApiError(error);
   }

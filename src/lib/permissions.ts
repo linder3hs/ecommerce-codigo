@@ -31,6 +31,8 @@ export const PERMISSIONS = {
   ROLES_MANAGE_PERMISSIONS: "roles.manage_permissions",
   AUDIT_LOGS_READ: "audit_logs.read",
   METRICS_READ: "metrics.read",
+  PRODUCT_COST_VIEW: "product_cost.view",
+  PRODUCT_COST_UPDATE: "product_cost.update",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

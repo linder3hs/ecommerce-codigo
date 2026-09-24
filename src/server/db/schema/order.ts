@@ -85,6 +85,12 @@ export const orderItems = pgTable(
       .references(() => products.id, { onDelete: "restrict" }),
     nameSnapshot: varchar("name_snapshot", { length: 160 }).notNull(),
     unitPriceCents: integer("unit_price_cents").notNull(),
+    // Costo congelado de la venta: se copia del producto al comprar, igual que
+    // `unit_price_cents`, para que editar el costo después no reescriba el
+    // margen de una compra ya hecha. Nullable y sin `default 0`: las órdenes
+    // anteriores a la migración —y las líneas de un producto sin costo
+    // conocido— quedan en `null`, que jamás se debe leer como costo 0.
+    unitCostCents: integer("unit_cost_cents"),
     qty: integer("qty").notNull(),
   },
   (table) => [
@@ -93,6 +99,10 @@ export const orderItems = pgTable(
     check(
       "order_items_unit_price_cents_check",
       sql`${table.unitPriceCents} >= 0`,
+    ),
+    check(
+      "order_items_unit_cost_cents_check",
+      sql`${table.unitCostCents} is null or ${table.unitCostCents} >= 0`,
     ),
   ],
 );

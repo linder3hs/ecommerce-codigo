@@ -16,7 +16,10 @@ import {
   useCreateProduct,
   useUpdateProduct,
 } from "../hooks/use-product-mutations";
-import type { CreateProductInput } from "../schemas/product.schema";
+import type {
+  CreateProductInput,
+  UpdateProductInput,
+} from "../schemas/product.schema";
 import type { Product } from "../types/product";
 
 import { ProductForm, type ProductFormValues } from "./product-form";
@@ -25,6 +28,7 @@ type ProductFormDialogProps = {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   product?: Product;
+  canEditCost: boolean;
 };
 
 const BLANK_VALUES: ProductFormValues = {
@@ -34,6 +38,7 @@ const BLANK_VALUES: ProductFormValues = {
   description: null,
   price: "",
   compareAtPrice: null,
+  cost: null,
   stock: 0,
   categoryId: "",
   imageUrl: null,
@@ -55,6 +60,11 @@ function toFormValues(product: Product | undefined): ProductFormValues {
       product.compareAtPriceCents === null
         ? null
         : centsToAmountInput(product.compareAtPriceCents),
+    // `costCents` ausente (sin `product_cost.view`) y `null` (costo desconocido)
+    // se editan igual: campo vacío. El costo no se manda en el PATCH de
+    // producto, así que un campo vacío aquí no borra el costo guardado.
+    cost:
+      product.costCents == null ? null : centsToAmountInput(product.costCents),
     stock: product.stock,
     categoryId: product.categoryId,
     imageUrl: product.imageUrl,
@@ -62,10 +72,31 @@ function toFormValues(product: Product | undefined): ProductFormValues {
   };
 }
 
+/**
+ * El costo no viaja en el `PATCH`. `updateProductSchema` ya lo descartaría en
+ * silencio, pero se quita en origen por dos razones: un body con `costCents`
+ * sugiere que este formulario puede cambiarlo, y si algún día el schema dejara
+ * de omitirlo, el formulario empezaría a escribir costos sin auditoría. La única
+ * vía es el `PATCH` de Finanzas, que registra el valor anterior.
+ *
+ * Se borra la clave en vez de destructurarla: un `const { costCents, ...rest }`
+ * deja una variable sin usar y el proyecto no admite warnings de lint.
+ */
+function toUpdateInput(values: CreateProductInput): UpdateProductInput {
+  const input: UpdateProductInput & Pick<CreateProductInput, "costCents"> = {
+    ...values,
+  };
+
+  delete input.costCents;
+
+  return input;
+}
+
 export function ProductFormDialog({
   open,
   onOpenChange,
   product,
+  canEditCost,
 }: ProductFormDialogProps) {
   const [serverError, setServerError] = useState<string | null>(null);
   const createProduct = useCreateProduct();
@@ -91,7 +122,10 @@ export function ProductFormDialog({
     };
 
     if (product) {
-      updateProduct.mutate({ id: product.id, input: values }, handlers);
+      updateProduct.mutate(
+        { id: product.id, input: toUpdateInput(values) },
+        handlers,
+      );
 
       return;
     }
@@ -129,6 +163,8 @@ export function ProductFormDialog({
           submitLabel={isEdit ? "Guardar cambios" : "Crear producto"}
           isPending={isPending}
           serverError={serverError}
+          canEditCost={canEditCost}
+          isEdit={isEdit}
           onSubmit={handleSubmit}
           onCancel={close}
         />

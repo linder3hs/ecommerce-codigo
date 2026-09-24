@@ -1,10 +1,20 @@
-import { handleApiError, jsonError, SlugConflictError } from "@/lib/api-error";
-import { PERMISSIONS, requirePermission } from "@/lib/permissions";
+import {
+  ForbiddenError,
+  handleApiError,
+  jsonError,
+  SlugConflictError,
+} from "@/lib/api-error";
+import {
+  hasPermission,
+  PERMISSIONS,
+  requirePermission,
+} from "@/lib/permissions";
 import { slugify } from "@/lib/utils";
 // Solo servidor: el umbral se define una vez en el módulo de dashboard y este
 // handler lo aplica al filtro, para que el cliente mande una bandera y no un
 // número que podría manipular.
 import { LOW_STOCK_THRESHOLD } from "@/modules/dashboard/constants";
+import { redactCost } from "@/modules/finance/lib/cost-redaction";
 import {
   createProductSchema,
   productQuerySchema,
@@ -28,7 +38,13 @@ export async function GET(request: Request) {
     // `/api/storefront/products`, que devuelve una proyección sin `sku`,
     // `isActive` ni los timestamps. Este listado es el del panel y expone la
     // fila completa, incluidos los productos despublicados.
-    await requirePermission(PERMISSIONS.PRODUCTS_READ);
+    // `requirePermission` devuelve el set efectivo del actor: el costo se
+    // redacta con ese mismo resultado, sin una segunda consulta.
+    const actorPermissions = await requirePermission(PERMISSIONS.PRODUCTS_READ);
+    const canViewCost = hasPermission(
+      actorPermissions,
+      PERMISSIONS.PRODUCT_COST_VIEW,
+    );
 
     const { searchParams } = new URL(request.url);
     const params = productQuerySchema.parse(
@@ -49,7 +65,10 @@ export async function GET(request: Request) {
       totalPages: Math.ceil(total / params.pageSize),
     };
 
-    return Response.json({ data: rows, meta });
+    return Response.json({
+      data: rows.map((row) => redactCost(row, canViewCost)),
+      meta,
+    });
   } catch (error: unknown) {
     return handleApiError(error);
   }
@@ -66,9 +85,24 @@ export async function POST(request: Request) {
 
   try {
     // Capa 3, la que manda: 401 sin sesión, 403 sin el permiso.
-    await requirePermission(PERMISSIONS.PRODUCTS_CREATE);
+    const actorPermissions = await requirePermission(
+      PERMISSIONS.PRODUCTS_CREATE,
+    );
+    const canEditCost = hasPermission(
+      actorPermissions,
+      PERMISSIONS.PRODUCT_COST_UPDATE,
+    );
 
     const input = createProductSchema.parse(body);
+
+    // Solo un costo numérico exige el permiso: `null` y la ausencia del campo
+    // son el valor por defecto de la columna —costo desconocido— y no cargan
+    // ningún dato de costo, así que crear productos sin tocar el costo sigue
+    // siendo posible con solo `products.create`.
+    if (typeof input.costCents === "number" && !canEditCost) {
+      throw new ForbiddenError("No tienes permiso para definir el costo.");
+    }
+
     const slug = input.slug ?? slugify(input.name);
 
     if (!slug) {
@@ -101,13 +135,22 @@ export async function POST(request: Request) {
       description: input.description ?? null,
       priceCents: input.priceCents,
       compareAtPriceCents: input.compareAtPriceCents ?? null,
+      costCents: input.costCents ?? null,
       stock: input.stock,
       categoryId: input.categoryId,
       imageUrl: input.imageUrl ?? null,
       isActive: input.isActive,
     });
 
-    return Response.json(product, { status: 201 });
+    // Quien puede escribir el costo no necesariamente puede leerlo: la respuesta
+    // se redacta con `product_cost.view`, igual que el resto de las filas.
+    return Response.json(
+      redactCost(
+        product,
+        hasPermission(actorPermissions, PERMISSIONS.PRODUCT_COST_VIEW),
+      ),
+      { status: 201 },
+    );
   } catch (error: unknown) {
     return handleApiError(error);
   }

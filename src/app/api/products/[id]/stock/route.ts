@@ -1,7 +1,12 @@
 import { handleApiError, jsonError, NotFoundError } from "@/lib/api-error";
 import { logAudit } from "@/lib/audit";
 import { getCurrentAppUser } from "@/lib/auth";
-import { PERMISSIONS, requirePermission } from "@/lib/permissions";
+import {
+  hasPermission,
+  PERMISSIONS,
+  requirePermission,
+} from "@/lib/permissions";
+import { redactCost } from "@/modules/finance/lib/cost-redaction";
 import {
   adjustStockSchema,
   productIdSchema,
@@ -34,7 +39,9 @@ export async function PATCH(
   }
 
   try {
-    await requirePermission(PERMISSIONS.PRODUCTS_UPDATE);
+    const actorPermissions = await requirePermission(
+      PERMISSIONS.PRODUCTS_UPDATE,
+    );
 
     const id = productIdSchema.parse((await ctx.params).id);
     const { delta } = adjustStockSchema.parse(body);
@@ -73,7 +80,14 @@ export async function PATCH(
 
     switch (result.kind) {
       case "ok":
-        return Response.json(result.product);
+        // La fila del producto viaja completa tras el ajuste: sin esta redacción
+        // el ajuste de stock sería la puerta trasera al costo.
+        return Response.json(
+          redactCost(
+            result.product,
+            hasPermission(actorPermissions, PERMISSIONS.PRODUCT_COST_VIEW),
+          ),
+        );
 
       case "not_found":
         throw new NotFoundError(NOT_FOUND_MESSAGE);
