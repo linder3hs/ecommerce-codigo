@@ -33,6 +33,13 @@ export const PERMISSIONS = {
   METRICS_READ: "metrics.read",
   PRODUCT_COST_VIEW: "product_cost.view",
   PRODUCT_COST_UPDATE: "product_cost.update",
+  REVENUE_VIEW: "revenue.view",
+  EXPENSES_VIEW: "expenses.view",
+  EXPENSES_CREATE: "expenses.create",
+  EXPENSES_UPDATE: "expenses.update",
+  EXPENSES_DELETE: "expenses.delete",
+  TAX_VIEW: "tax.view",
+  PROFIT_VIEW: "profit.view",
 } as const;
 
 export type PermissionCode = (typeof PERMISSIONS)[keyof typeof PERMISSIONS];

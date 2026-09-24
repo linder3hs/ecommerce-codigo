@@ -2,6 +2,7 @@
 // y lo re-exporta aquí para que drizzle-kit y el cliente lo descubran.
 export * from "./audit-log";
 export * from "./category";
+export * from "./expense";
 export * from "./order";
 export * from "./payment-method";
 export * from "./permission";

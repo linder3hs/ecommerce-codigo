@@ -10,6 +10,14 @@ import type { DateRange } from "../types/order-history";
  */
 export const STORE_UTC_OFFSET = "-05:00";
 
+/**
+ * El mismo calendario que `STORE_UTC_OFFSET`, con el nombre que entiende
+ * Postgres (`at time zone`): los reportes que agrupan por día en SQL lo usan
+ * para que sus claves coincidan con las de `rangeToInstants` y `toStoreDay`.
+ * Si uno cambia, cambia el otro.
+ */
+export const STORE_TIME_ZONE = "America/Lima";
+
 const OFFSET_MS = -5 * 60 * 60 * 1000;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
