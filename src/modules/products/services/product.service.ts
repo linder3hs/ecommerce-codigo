@@ -34,6 +34,16 @@ export const productService = {
     return data;
   },
 
+  // El handler responde el producto plano, no `{ data }`: por eso se devuelve
+  // `data` tal cual, igual que `update`.
+  async adjustStock(id: string, delta: number): Promise<Product> {
+    const { data } = await api.patch<Product>(`${RESOURCE}/${id}/stock`, {
+      delta,
+    });
+
+    return data;
+  },
+
   async remove(id: string): Promise<void> {
     await api.delete(`${RESOURCE}/${id}`);
   },
